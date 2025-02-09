@@ -2,200 +2,209 @@ import Combine
 import SwiftUI
 
 struct TipCalculatorView: View {
+    // MARK: - Properties
+
     @State private var billAmount: String = ""
     @State private var customTipAmount: String = ""
     @State private var customTipPercentageStr: String = ""
     @State private var selectedTipPercentage: Double = 0.15
     @State private var tipPercentage: Double = 0.15
     @State private var shouldClearCustomFields: Bool = true
-
-    // Editing flags to avoid mutual update loops
     @State private var isEditingTipAmount: Bool = false
     @State private var isEditingTipPercentage: Bool = false
-    
-    // Work items to debounce custom field updates.
     @State private var tipAmountWorkItem: DispatchWorkItem?
     @State private var tipPercentageWorkItem: DispatchWorkItem?
     
-    // Preset percentages divided into two rows
-    let rowOnePercentages: [Double] = [0.10, 0.12, 0.15, 0.18]
-    let rowTwoPercentages: [Double] = [0.20, 0.22, 0.25]
+    // MARK: - Constants
+
+    private let rowOnePercentages: [Double] = [0.10, 0.12, 0.15, 0.18]
+    private let rowTwoPercentages: [Double] = [0.20, 0.22, 0.25]
+    private let debounceInterval: TimeInterval = 0.8
     
-    // Convert bill string to Double
-    var bill: Double {
+    // MARK: - Computed Properties
+
+    private var bill: Double {
         Double(billAmount) ?? 0
     }
     
-    // Use custom tip amount if entered; otherwise calculate.
-    var tipAmount: Double {
+    private var tipAmount: Double {
         if let entered = Double(customTipAmount), entered > 0 {
             return entered
         }
         return bill * tipPercentage
     }
     
-    // Computes tip percentage from custom tip amount if valid.
-    var computedTipPercentage: Double {
+    private var computedTipPercentage: Double {
         if bill > 0, let entered = Double(customTipAmount), entered > 0 {
             return entered / bill
         }
         return tipPercentage
     }
     
-    var totalAmount: Double {
+    private var totalAmount: Double {
         bill + tipAmount
     }
     
-    var body: some View {
-        VStack(spacing: 20) {
-            VStack(alignment: .leading) {
-                Text("Tip Easy")
-                    .font(.largeTitle)
-                    .bold()
-            }
-            
-            TextField("Enter bill amount", text: $billAmount)
-                .keyboardType(.decimalPad)
-                .padding()
-                .background(Color(.systemGray6))
-                .cornerRadius(8)
-            
+    // MARK: - View Components
+
+    private var billInputField: some View {
+        TextField("Enter bill amount", text: $billAmount)
+            .keyboardType(.decimalPad)
+            .textFieldStyle(RoundedTextFieldStyle())
+    }
+    
+    private var tipPercentageSlider: some View {
+        VStack {
             Slider(value: $selectedTipPercentage, in: 0 ... 0.50, step: 0.01)
                 .accentColor(.blue)
                 .onChange(of: selectedTipPercentage) { _, newValue in
-                    withAnimation {
-                        tipPercentage = newValue
-                        // Only clear custom inputs if we should
-                        if shouldClearCustomFields {
-                            customTipAmount = ""
-                            customTipPercentageStr = ""
-                        }
-                        tipAmountWorkItem?.cancel()
-                        tipPercentageWorkItem?.cancel()
-                    }
+                    updateTipFromSlider(newValue)
                 }
-            
             Text("Tip Percentage: \(Int(selectedTipPercentage * 100))%")
-            
-            // First row of preset tip buttons
-            HStack {
-                ForEach(rowOnePercentages, id: \.self) { percentage in
-                    Button(action: {
-                        withAnimation {
-                            tipPercentage = percentage
-                            selectedTipPercentage = percentage
-                            // Only clear custom inputs if we should
-                            if shouldClearCustomFields {
-                                customTipAmount = ""
-                                customTipPercentageStr = ""
-                            }
-                            tipAmountWorkItem?.cancel()
-                            tipPercentageWorkItem?.cancel()
-                        }
-                    }) {
-                        Text("\(Int(percentage * 100))%")
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background((abs(percentage - tipPercentage) < 0.001)
-                                ? Color.blue.opacity(0.7)
-                                : Color.blue)
-                            .foregroundColor(.white)
-                            .cornerRadius(8)
-                    }
+        }
+    }
+    
+    private var presetButtonRows: some View {
+        VStack {
+            HStack { ForEach(rowOnePercentages, id: \.self) { percentage in
+                createPresetButton(for: percentage)
+            }}
+            HStack { ForEach(rowTwoPercentages, id: \.self) { percentage in
+                createPresetButton(for: percentage)
+            }}
+        }
+    }
+    
+    private var customInputFields: some View {
+        return VStack {
+            TextField("Enter tip amount", text: $customTipAmount, onEditingChanged: handleTipAmountEditing)
+                .textFieldStyle(RoundedTextFieldStyle())
+                .onChange(of: customTipAmount) { oldValue, newValue in
+                    debouncedTipAmountUpdate(oldValue: oldValue, newValue: newValue)
                 }
-            }
-            
-            // Second row of preset tip buttons
-            HStack {
-                ForEach(rowTwoPercentages, id: \.self) { percentage in
-                    Button(action: {
-                        withAnimation {
-                            tipPercentage = percentage
-                            selectedTipPercentage = percentage
-                            // Only clear custom inputs if we should
-                            if shouldClearCustomFields {
-                                customTipAmount = ""
-                                customTipPercentageStr = ""
-                            }
-                            tipAmountWorkItem?.cancel()
-                            tipPercentageWorkItem?.cancel()
-                        }
-                    }) {
-                        Text("\(Int(percentage * 100))%")
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background((abs(percentage - tipPercentage) < 0.001)
-                                ? Color.blue.opacity(0.7)
-                                : Color.blue)
-                            .foregroundColor(.white)
-                            .cornerRadius(8)
-                    }
+        
+            TextField("Enter tip percentage", text: $customTipPercentageStr, onEditingChanged: handleTipPercentageEditing)
+                .textFieldStyle(RoundedTextFieldStyle())
+                .onChange(of: customTipPercentageStr) {
+                    oldValue, newValue in
+                    debouncedTipPercentageUpdate(oldValue: oldValue, newValue: newValue)
                 }
-            }
-            
-            // Custom tip amount field
-            TextField("Enter tip amount", text: $customTipAmount, onEditingChanged: { editing in
-                isEditingTipAmount = editing
-                if !editing {
-                    // When editing ends, update immediately.
-                    updateTipAmount(oldValue: "", newValue: customTipAmount)
-                }
-            })
-            .keyboardType(.decimalPad)
-            .submitLabel(.done)
-            .padding()
-            .background(Color(.systemGray6))
-            .cornerRadius(8)
-            .onChange(of: customTipAmount) { oldValue, newValue in
-                // Cancel previous work item.
-                tipAmountWorkItem?.cancel()
-                let workItem = DispatchWorkItem {
-                    updateTipAmount(oldValue: oldValue, newValue: newValue)
-                }
-                tipAmountWorkItem = workItem
-                // DispatchQueue.main.asyncAfter(deadline: .now() + 0.8, execute: workItem)
-            }
-            
-            // Custom tip percentage field
-            TextField("Enter tip percentage", text: $customTipPercentageStr, onEditingChanged: { editing in
-                isEditingTipPercentage = editing
-                if !editing {
-                    updateTipPercentage(oldValue: "", newValue: customTipPercentageStr)
-                }
-            })
-            .keyboardType(.decimalPad)
-            .submitLabel(.done)
-            .padding()
-            .background(Color(.systemGray6))
-            .cornerRadius(8)
-            .onChange(of: customTipPercentageStr) { oldValue, newValue in
-                tipPercentageWorkItem?.cancel()
-                let workItem = DispatchWorkItem {
-                    updateTipPercentage(oldValue: oldValue, newValue: newValue)
-                }
-                tipPercentageWorkItem = workItem
-                // DispatchQueue.main.asyncAfter(deadline: .now() + 0.8, execute: workItem)
-            }
-            
-            // Summary section
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Bill Amount: $\(bill, specifier: "%.2f")")
-                Text("Tip Amount: $\(tipAmount, specifier: "%.2f")")
-                Text("Tip Percentage: \(Int(computedTipPercentage * 100))%")
-                Text("Total Amount: $\(totalAmount, specifier: "%.2f")")
-            }
-            .font(.title2)
-            .bold()
-            .padding()
-            .background(Color(.systemGray5))
-            .cornerRadius(8)
-            .animation(.default, value: totalAmount)
+        }
+    }
+    
+    private var summaryView: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Bill Amount: $\(bill, specifier: "%.2f")")
+            Text("Tip Amount: $\(tipAmount, specifier: "%.2f")")
+            Text("Tip Percentage: \(Int(computedTipPercentage * 100))%")
+            Text("Total Amount: $\(totalAmount, specifier: "%.2f")")
+        }
+        .font(.title2)
+        .bold()
+        .padding()
+        .background(Color(.systemGray5))
+        .cornerRadius(8)
+        .animation(.default, value: totalAmount)
+    }
+    
+    // MARK: - Body
+
+    var body: some View {
+        VStack(spacing: 20) {
+            Text("Tip Easy").font(.largeTitle).bold()
+            billInputField
+            tipPercentageSlider
+            presetButtonRows
+            customInputFields
+            summaryView
         }
         .padding()
     }
     
-    // MARK: - Update Functions
+    // MARK: - Helper Methods
+
+    private func createPresetButton(for percentage: Double) -> some View {
+        Button(action: { updateTipFromPreset(percentage) }) {
+            Text("\(Int(percentage * 100))%")
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background((abs(percentage - tipPercentage) < 0.001)
+                    ? Color.blue.opacity(0.7)
+                    : Color.blue)
+                .foregroundColor(.white)
+                .cornerRadius(8)
+        }
+    }
     
+    private func updateTipFromSlider(_ newValue: Double) {
+        withAnimation {
+            tipPercentage = newValue
+            if shouldClearCustomFields {
+                clearCustomFields()
+            }
+            cancelWorkItems()
+        }
+    }
+    
+    private func updateTipFromPreset(_ percentage: Double) {
+        withAnimation {
+            tipPercentage = percentage
+            selectedTipPercentage = percentage
+            if shouldClearCustomFields {
+                clearCustomFields()
+            }
+            cancelWorkItems()
+        }
+    }
+    
+    private func clearCustomFields() {
+        customTipAmount = ""
+        customTipPercentageStr = ""
+    }
+    
+    private func cancelWorkItems() {
+        tipAmountWorkItem?.cancel()
+        tipPercentageWorkItem?.cancel()
+    }
+    
+    private func debouncedTipAmountUpdate(oldValue: String, newValue: String) {
+        tipAmountWorkItem?.cancel()
+        let workItem = DispatchWorkItem {
+            updateTipAmount(oldValue: oldValue, newValue: newValue)
+        }
+        tipAmountWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + debounceInterval, execute: workItem)
+    }
+    
+    private func debouncedTipPercentageUpdate(oldValue: String, newValue: String) {
+        tipPercentageWorkItem?.cancel()
+        let workItem = DispatchWorkItem {
+            updateTipPercentage(oldValue: oldValue, newValue: newValue)
+        }
+        tipPercentageWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + debounceInterval, execute: workItem)
+    }
+    
+    private func handleTipAmountEditing(_ editing: Bool) {
+        isEditingTipAmount = editing
+        if !editing {
+            // When editing ends, update immediately
+            if let oldValue = Double(customTipAmount) {
+                updateTipAmount(oldValue: String(oldValue), newValue: customTipAmount)
+            }
+        }
+    }
+
+    private func handleTipPercentageEditing(_ editing: Bool) {
+        isEditingTipPercentage = editing
+        if !editing {
+            // When editing ends, update immediately
+            if let oldValue = Double(customTipPercentageStr) {
+                updateTipPercentage(oldValue: String(oldValue), newValue: customTipPercentageStr)
+            }
+        }
+    }
+
     private func updateTipAmount(oldValue: String, newValue: String) {
         // Do not update if the field is empty or unchanged
         guard !newValue.trimmingCharacters(in: .whitespaces).isEmpty,
@@ -213,10 +222,10 @@ struct TipCalculatorView: View {
                 shouldClearCustomFields = false
             }
         }
-        print("Custom Tip Amount updated to \(newValue)")
     }
-    
+
     private func updateTipPercentage(oldValue: String, newValue: String) {
+        // Do not update if the field is empty or unchanged
         guard !newValue.trimmingCharacters(in: .whitespaces).isEmpty,
               oldValue != newValue else { return }
         
@@ -232,7 +241,19 @@ struct TipCalculatorView: View {
                 shouldClearCustomFields = false
             }
         }
-        print("Custom Tip Percentage updated to \(newValue)")
+    }
+}
+
+// MARK: - Custom Styles
+
+struct RoundedTextFieldStyle: TextFieldStyle {
+    func _body(configuration: TextField<Self._Label>) -> some View {
+        configuration
+            .keyboardType(.decimalPad)
+            .submitLabel(.done)
+            .padding()
+            .background(Color(.systemGray6))
+            .cornerRadius(8)
     }
 }
 
