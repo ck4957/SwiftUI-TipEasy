@@ -7,8 +7,8 @@ struct TipCalculatorView: View {
     @State private var billAmount: String = ""
     @State private var customTipAmount: String = ""
     @State private var customTipPercentageStr: String = ""
-    @State private var selectedTipPercentage: Double = 0.15
-    @State private var tipPercentage: Double = 0.15
+    @State private var selectedTipPercentage: Double = 0.0
+    @State private var tipPercentage: Double = 0.0
     @State private var shouldClearCustomFields: Bool = true
     @State private var isEditingTipAmount: Bool = false
     @State private var isEditingTipPercentage: Bool = false
@@ -102,7 +102,7 @@ struct TipCalculatorView: View {
     }
     
     private var customInputFields: some View {
-        return VStack {
+        return HStack {
             TextField("Enter tip amount", text: $customTipAmount, onEditingChanged: handleTipAmountEditing)
                 .textFieldStyle(RoundedTextFieldStyle())
                 .onChange(of: customTipAmount) { oldValue, newValue in
@@ -120,29 +120,27 @@ struct TipCalculatorView: View {
     
     private var summaryView: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Bill Amount: $\(bill, specifier: "%.2f")")
-            Text("Tip Amount: $\(tipAmount, specifier: "%.2f")")
-            Text("Tip Percentage: \(Int(computedTipPercentage * 100))%")
-            Text("Total Amount: $\(totalAmount, specifier: "%.2f")")
+            Text("Bill: $\(bill, specifier: "%.2f")")
+            Text("Tip: $\(tipAmount, specifier: "%.2f") (\(Int(computedTipPercentage * 100))%)")
+            Text("Total: $\(totalAmount, specifier: "%.2f")")
         }
-        .font(.title2)
-        .bold()
+        .font(.title3)
+        .fontWeight(.medium)
         .padding()
-        .background(Color(.systemGray5))
-        .cornerRadius(8)
         .animation(.default, value: totalAmount)
     }
     
     // MARK: - Body
 
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 15) {
             Text("Tip Easy").font(.largeTitle).bold()
             billInputField
             tipPercentageSlider
             presetButtonRows
             customInputFields
             summaryView
+            Spacer()
         }
         .padding()
     }
@@ -150,7 +148,10 @@ struct TipCalculatorView: View {
     // MARK: - Helper Methods
 
     private func createPresetButton(for percentage: Double) -> some View {
-        Button(action: { updateTipFromPreset(percentage) }) {
+        Button(action: {
+            shouldClearCustomFields = true
+            updateTipFromPreset(percentage)
+        }) {
             Text("\(Int(percentage * 100))%")
                 .padding()
                 .frame(maxWidth: .infinity)
