@@ -51,32 +51,37 @@ struct TipCalculatorView: View {
         TextField("Enter bill amount", text: $billAmount)
             .keyboardType(.decimalPad)
             .textFieldStyle(RoundedTextFieldStyle())
+            .padding(.horizontal)
     }
     
     private var tipPercentageSlider: some View {
         VStack {
             Slider(value: $selectedTipPercentage, in: 0 ... 0.50, step: 0.01)
-                .accentColor(.blue)
+                .accentColor(.white)
                 .onChange(of: selectedTipPercentage) { _, newValue in
                     updateTipFromSlider(newValue)
                 }
             Text("Tip Percentage: \(Int(selectedTipPercentage * 100))%")
+                .foregroundColor(.white)
+                .bold()
         }
+        .padding(.horizontal)
     }
     
     private var presetButtonRows: some View {
-        VStack {
-            HStack { ForEach(rowOnePercentages, id: \.self) { percentage in
+        VStack(spacing: 10) {
+            HStack(spacing: 10) { ForEach(rowOnePercentages, id: \.self) { percentage in
                 createPresetButton(for: percentage)
             }}
-            HStack { ForEach(rowTwoPercentages, id: \.self) { percentage in
+            HStack(spacing: 10) { ForEach(rowTwoPercentages, id: \.self) { percentage in
                 createPresetButton(for: percentage)
             }}
         }
+        .padding(.horizontal)
     }
     
     private var customInputFields: some View {
-        return VStack {
+        return VStack(spacing: 15) {
             TextField("Enter tip amount", text: $customTipAmount, onEditingChanged: handleTipAmountEditing)
                 .textFieldStyle(RoundedTextFieldStyle())
                 .onChange(of: customTipAmount) { oldValue, newValue in
@@ -90,6 +95,7 @@ struct TipCalculatorView: View {
                     debouncedTipPercentageUpdate(oldValue: oldValue, newValue: newValue)
                 }
         }
+        .padding(.horizontal)
     }
     
     private var summaryView: some View {
@@ -102,23 +108,38 @@ struct TipCalculatorView: View {
         .font(.title2)
         .bold()
         .padding()
-        .background(Color(.systemGray5))
+        .background(Color.white.opacity(0.85))
         .cornerRadius(8)
         .animation(.default, value: totalAmount)
+        .padding(.horizontal)
     }
     
     // MARK: - Body
 
     var body: some View {
-        VStack(spacing: 20) {
-            Text("Tip Easy").font(.largeTitle).bold()
-            billInputField
-            tipPercentageSlider
-            presetButtonRows
-            customInputFields
-            summaryView
+        ZStack {
+            // Background gradient
+            LinearGradient(gradient: Gradient(colors: [Color.purple, Color.blue]),
+                           startPoint: .topLeading,
+                           endPoint: .bottomTrailing)
+                .edgesIgnoringSafeArea(.all)
+            
+            ScrollView {
+                VStack(spacing: 20) {
+                    Text("Tip Easy")
+                        .font(.largeTitle)
+                        .bold()
+                        .foregroundColor(.white)
+                    
+                    billInputField
+                    tipPercentageSlider
+                    presetButtonRows
+                    customInputFields
+                    summaryView
+                }
+                .padding(.vertical, 20)
+            }
         }
-        .padding()
     }
     
     // MARK: - Helper Methods
@@ -126,13 +147,16 @@ struct TipCalculatorView: View {
     private func createPresetButton(for percentage: Double) -> some View {
         Button(action: { updateTipFromPreset(percentage) }) {
             Text("\(Int(percentage * 100))%")
-                .padding()
+                .font(.headline)
                 .frame(maxWidth: .infinity)
-                .background((abs(percentage - tipPercentage) < 0.001)
-                    ? Color.blue.opacity(0.7)
-                    : Color.blue)
+                .padding()
+                .background(
+                    LinearGradient(gradient: Gradient(colors: [Color.orange, Color.red]),
+                                   startPoint: .leading,
+                                   endPoint: .trailing)
+                )
                 .foregroundColor(.white)
-                .cornerRadius(8)
+                .cornerRadius(10)
         }
     }
     
@@ -252,7 +276,7 @@ struct RoundedTextFieldStyle: TextFieldStyle {
             .keyboardType(.decimalPad)
             .submitLabel(.done)
             .padding()
-            .background(Color(.systemGray6))
+            .background(Color.white.opacity(0.85))
             .cornerRadius(8)
     }
 }
