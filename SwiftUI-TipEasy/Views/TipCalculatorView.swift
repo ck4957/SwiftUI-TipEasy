@@ -1,4 +1,5 @@
 import Combine
+import SwiftData
 import SwiftUI
 
 enum TipInputMode {
@@ -21,13 +22,10 @@ struct TipCalculatorView: View {
     @State private var isEditingCustomTip: Bool = false
     @State private var tipWorkItem: DispatchWorkItem?
     
-    // Use custom preset values if set by the user.
-    // Stored as a comma-separated string (e.g., "10,12,15,18,20")
-    @AppStorage("customPresetPercentages") var customPresetString: String = "10,12,15,18,20"
+    // Instead of using AppStorage, we query the TipPreset model.
+    @Query(sort: \TipPreset.percentage) private var tipPresets: [TipPreset]
     
-    // MARK: - Constants
-    
-    // Default presets (if needed) when no custom value is set.
+    // Default presets (if no models exist).
     private let defaultPresets: [Double] = [0.10, 0.12, 0.15, 0.18, 0.20, 0.22, 0.25]
     private let debounceInterval: TimeInterval = 0.8
     
@@ -67,23 +65,23 @@ struct TipCalculatorView: View {
         bill + computedTipAmount
     }
     
-    // Compute preset percentages from user's settings.
-    // If the stored string is empty or incorrectly formatted, use default presets.
-    private var presetPercentages: [Double] {
-        let presets = customPresetString
-            .split(separator: ",")
-            .compactMap { Double($0.trimmingCharacters(in: .whitespaces)) }
-        if presets.isEmpty { return defaultPresets }
-        // Convert user-entered percentage (e.g., 10) to fraction (0.10)
-        return presets.map { $0 / 100.0 }
+    // Calculate preset percentages based on TipPreset models.
+    // If no presets exist in the model container, use defaultPresets.
+    private var presetPercentageValues: [Double] {
+        if tipPresets.isEmpty {
+            return defaultPresets
+        } else {
+            return tipPresets.map { $0.percentage }
+        }
     }
     
-    // Create two rows if needed. Split the presets equally.
+    // Create rows from the presetPercentageValues.
     private var presetButtonRows: some View {
-        let count = presetPercentages.count
+        let presets = presetPercentageValues
+        let count = presets.count
         let splitIndex = (count + 1) / 2
-        let firstRow = Array(presetPercentages.prefix(splitIndex))
-        let secondRow = Array(presetPercentages.suffix(from: splitIndex))
+        let firstRow = count < 4 ? Array(presets) : Array(presets.prefix(splitIndex))
+        let secondRow = count < 4 ? [] : Array(presets.suffix(from: splitIndex))
         return VStack(spacing: 10) {
             HStack(spacing: 10) {
                 ForEach(firstRow, id: \.self) { percentage in
@@ -196,7 +194,7 @@ struct TipCalculatorView: View {
         }) {
             Text("\(Int(percentage * 100))%")
                 .padding()
-                .frame(maxWidth: .infinity)
+                // .frame(maxWidth: 20)
                 .background((abs(percentage - tipPercentage) < 0.001)
                     ? Color.blue.opacity(0.7)
                     : Color.blue)

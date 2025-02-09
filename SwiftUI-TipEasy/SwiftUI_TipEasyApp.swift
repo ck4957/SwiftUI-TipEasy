@@ -5,13 +5,15 @@
 //  Created by Chirag Kular on 2/8/25.
 //
 
+import SwiftData
 import SwiftUI
 
 @main
-struct SwiftUI_TipEasyApp: App {
+struct TipEasyApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .modelContainer(for: [TipPreset.self])
         }
     }
 }
