@@ -15,10 +15,14 @@ struct TipCalculatorView: View {
     @State private var tipAmountWorkItem: DispatchWorkItem?
     @State private var tipPercentageWorkItem: DispatchWorkItem?
     
+    // Use custom preset values if set by the user.
+    // Stored as a comma-separated string (e.g., "10,12,15,18,20")
+    @AppStorage("customPresetPercentages") var customPresetString: String = "10,12,15,18,20"
+    
     // MARK: - Constants
 
-    private let rowOnePercentages: [Double] = [0.10, 0.12, 0.15, 0.18]
-    private let rowTwoPercentages: [Double] = [0.20, 0.22, 0.25]
+    // Default presets (if needed) when no custom value is set.
+    private let defaultPresets: [Double] = [0.10, 0.12, 0.15, 0.18, 0.20, 0.22, 0.25]
     private let debounceInterval: TimeInterval = 0.8
     
     // MARK: - Computed Properties
@@ -45,6 +49,39 @@ struct TipCalculatorView: View {
         bill + tipAmount
     }
     
+    // Compute preset percentages from user's settings.
+    // If the stored string is empty or incorrectly formatted, use default presets.
+    private var presetPercentages: [Double] {
+        let presets = customPresetString
+            .split(separator: ",")
+            .compactMap { Double($0.trimmingCharacters(in: .whitespaces)) }
+        if presets.isEmpty { return defaultPresets }
+        // Convert user-entered percentage (e.g., 10) to fraction (0.10)
+        return presets.map { $0 / 100.0 }
+    }
+    
+    // Create two rows if needed. Split the presets equally.
+    private var presetButtonRows: some View {
+        let count = presetPercentages.count
+        let splitIndex = (count + 1) / 2
+        let firstRow = Array(presetPercentages.prefix(splitIndex))
+        let secondRow = Array(presetPercentages.suffix(from: splitIndex))
+        return VStack(spacing: 10) {
+            HStack(spacing: 10) {
+                ForEach(firstRow, id: \.self) { percentage in
+                    createPresetButton(for: percentage)
+                }
+            }
+            if !secondRow.isEmpty {
+                HStack(spacing: 10) {
+                    ForEach(secondRow, id: \.self) { percentage in
+                        createPresetButton(for: percentage)
+                    }
+                }
+            }
+        }
+    }
+    
     // MARK: - View Components
 
     private var billInputField: some View {
@@ -61,17 +98,6 @@ struct TipCalculatorView: View {
                     updateTipFromSlider(newValue)
                 }
             Text("Tip Percentage: \(Int(selectedTipPercentage * 100))%")
-        }
-    }
-    
-    private var presetButtonRows: some View {
-        VStack {
-            HStack { ForEach(rowOnePercentages, id: \.self) { percentage in
-                createPresetButton(for: percentage)
-            }}
-            HStack { ForEach(rowTwoPercentages, id: \.self) { percentage in
-                createPresetButton(for: percentage)
-            }}
         }
     }
     
