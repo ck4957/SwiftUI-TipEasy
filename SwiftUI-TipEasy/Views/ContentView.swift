@@ -2,8 +2,16 @@ import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        TipCalculatorView()
-            .padding()
+        NavigationStack {
+            TipCalculatorView()
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        NavigationLink(destination: TipPresetSettingsView()) {
+                            Image(systemName: "gear")
+                        }
+                    }
+                }
+        }
     }
 }
 
@@ -11,7 +19,5 @@ struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
             .preferredColorScheme(.light)
-        ContentView()
-            .preferredColorScheme(.dark)
     }
 }
