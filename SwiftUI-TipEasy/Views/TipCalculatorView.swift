@@ -7,6 +7,7 @@ struct TipCalculatorView: View {
     @State private var customTipPercentageStr: String = ""
     @State private var selectedTipPercentage: Double = 0.15
     @State private var tipPercentage: Double = 0.15
+    @State private var shouldClearCustomFields: Bool = true
 
     // Editing flags to avoid mutual update loops
     @State private var isEditingTipAmount: Bool = false
@@ -64,9 +65,11 @@ struct TipCalculatorView: View {
                 .onChange(of: selectedTipPercentage) { _, newValue in
                     withAnimation {
                         tipPercentage = newValue
-                        // Clear custom inputs when using slider
-                        customTipAmount = ""
-                        customTipPercentageStr = ""
+                        // Only clear custom inputs if we should
+                        if shouldClearCustomFields {
+                            customTipAmount = ""
+                            customTipPercentageStr = ""
+                        }
                         tipAmountWorkItem?.cancel()
                         tipPercentageWorkItem?.cancel()
                     }
@@ -81,8 +84,11 @@ struct TipCalculatorView: View {
                         withAnimation {
                             tipPercentage = percentage
                             selectedTipPercentage = percentage
-                            customTipAmount = ""
-                            customTipPercentageStr = ""
+                            // Only clear custom inputs if we should
+                            if shouldClearCustomFields {
+                                customTipAmount = ""
+                                customTipPercentageStr = ""
+                            }
                             tipAmountWorkItem?.cancel()
                             tipPercentageWorkItem?.cancel()
                         }
@@ -106,8 +112,11 @@ struct TipCalculatorView: View {
                         withAnimation {
                             tipPercentage = percentage
                             selectedTipPercentage = percentage
-                            customTipAmount = ""
-                            customTipPercentageStr = ""
+                            // Only clear custom inputs if we should
+                            if shouldClearCustomFields {
+                                customTipAmount = ""
+                                customTipPercentageStr = ""
+                            }
                             tipAmountWorkItem?.cancel()
                             tipPercentageWorkItem?.cancel()
                         }
@@ -129,7 +138,7 @@ struct TipCalculatorView: View {
                 isEditingTipAmount = editing
                 if !editing {
                     // When editing ends, update immediately.
-                    updateTipAmount(newValue: customTipAmount)
+                    updateTipAmount(oldValue: "", newValue: customTipAmount)
                 }
             })
             .keyboardType(.decimalPad)
@@ -137,21 +146,21 @@ struct TipCalculatorView: View {
             .padding()
             .background(Color(.systemGray6))
             .cornerRadius(8)
-            .onChange(of: customTipAmount) { _, newValue in
+            .onChange(of: customTipAmount) { oldValue, newValue in
                 // Cancel previous work item.
                 tipAmountWorkItem?.cancel()
                 let workItem = DispatchWorkItem {
-                    updateTipAmount(newValue: newValue)
+                    updateTipAmount(oldValue: oldValue, newValue: newValue)
                 }
                 tipAmountWorkItem = workItem
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8, execute: workItem)
+                // DispatchQueue.main.asyncAfter(deadline: .now() + 0.8, execute: workItem)
             }
             
             // Custom tip percentage field
             TextField("Enter tip percentage", text: $customTipPercentageStr, onEditingChanged: { editing in
                 isEditingTipPercentage = editing
                 if !editing {
-                    updateTipPercentage(newValue: customTipPercentageStr)
+                    updateTipPercentage(oldValue: "", newValue: customTipPercentageStr)
                 }
             })
             .keyboardType(.decimalPad)
@@ -159,13 +168,13 @@ struct TipCalculatorView: View {
             .padding()
             .background(Color(.systemGray6))
             .cornerRadius(8)
-            .onChange(of: customTipPercentageStr) { _, newValue in
+            .onChange(of: customTipPercentageStr) { oldValue, newValue in
                 tipPercentageWorkItem?.cancel()
                 let workItem = DispatchWorkItem {
-                    updateTipPercentage(newValue: newValue)
+                    updateTipPercentage(oldValue: oldValue, newValue: newValue)
                 }
                 tipPercentageWorkItem = workItem
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8, execute: workItem)
+                // DispatchQueue.main.asyncAfter(deadline: .now() + 0.8, execute: workItem)
             }
             
             // Summary section
@@ -187,7 +196,11 @@ struct TipCalculatorView: View {
     
     // MARK: - Update Functions
     
-    private func updateTipAmount(newValue: String) {
+    private func updateTipAmount(oldValue: String, newValue: String) {
+        // Do not update if the field is empty or unchanged
+        guard !newValue.trimmingCharacters(in: .whitespaces).isEmpty,
+              oldValue != newValue else { return }
+        
         withAnimation {
             if let enteredTip = Double(newValue), bill > 0 {
                 let computedPercentage = (enteredTip / bill) * 100
@@ -197,12 +210,16 @@ struct TipCalculatorView: View {
                 }
                 tipPercentage = enteredTip / bill
                 selectedTipPercentage = tipPercentage
+                shouldClearCustomFields = false
             }
         }
         print("Custom Tip Amount updated to \(newValue)")
     }
     
-    private func updateTipPercentage(newValue: String) {
+    private func updateTipPercentage(oldValue: String, newValue: String) {
+        guard !newValue.trimmingCharacters(in: .whitespaces).isEmpty,
+              oldValue != newValue else { return }
+        
         withAnimation {
             if let enteredPercent = Double(newValue), bill > 0 {
                 let computedTip = bill * (enteredPercent / 100)
@@ -212,6 +229,7 @@ struct TipCalculatorView: View {
                 }
                 tipPercentage = enteredPercent / 100
                 selectedTipPercentage = tipPercentage
+                shouldClearCustomFields = false
             }
         }
         print("Custom Tip Percentage updated to \(newValue)")
