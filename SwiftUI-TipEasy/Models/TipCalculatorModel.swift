@@ -2,7 +2,7 @@ import Foundation
 
 class TipCalculatorModel: ObservableObject {
     @Published var billAmount: String = ""
-    @Published var selectedTipPercentage: Double = 0.15 // Default to 15%
+    @Published var selectedTipPercentage: Double = 0.0
     @Published var customTipPercentage: String = ""
 
     var totalAmount: Double {
