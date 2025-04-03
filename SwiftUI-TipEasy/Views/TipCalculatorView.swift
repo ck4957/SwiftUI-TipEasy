@@ -181,6 +181,8 @@ struct TipCalculatorView: View {
             customTipInputField
             summaryView
             Spacer()
+            AdBannerView(adUnitID: "ca-app-pub-3911596373332918/3954995797")
+                .frame(height: 50)
         }
         .padding()
     }

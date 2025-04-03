@@ -8,7 +8,7 @@ struct TipPresetSettingsView: View {
     @Environment(\.modelContext) private var modelContext
     // Used to dismiss the view.
     @Environment(\.dismiss) var dismiss
-    
+
     // Sheet state for adding/editing a preset.
     @State private var showingPresetSheet: Bool = false
     @State private var presetToEdit: TipPreset? = nil
@@ -24,9 +24,9 @@ struct TipPresetSettingsView: View {
                                     presetToEdit = preset
                                     showingPresetSheet = true
                                 }
-                            
+
                             Spacer()
-                            
+
                             // Delete button for each preset.
                             Button {
                                 modelContext.delete(preset)
@@ -36,7 +36,7 @@ struct TipPresetSettingsView: View {
                             }
                         }
                     }
-                    
+
                     // Plus button to add a new preset.
                     Button {
                         presetToEdit = nil
@@ -49,7 +49,7 @@ struct TipPresetSettingsView: View {
                         .foregroundColor(.blue)
                     }
                 }
-                
+
                 Section {
                     Button {
                         // Save is automatic for SwiftData.
@@ -68,6 +68,9 @@ struct TipPresetSettingsView: View {
             .sheet(isPresented: $showingPresetSheet) {
                 AddEditPresetSheet(presetToEdit: presetToEdit, modelContext: modelContext)
             }
+            Spacer() // Ensure the form takes the full height of the screen, especially on iOS 16.
+            AdBannerView(adUnitID: "ca-app-pub-3911596373332918/3954995797") // Replace with your ad unit ID
+                .frame(height: 50)
         }
     }
 }
@@ -78,14 +81,14 @@ struct AddEditPresetSheet: View {
     var modelContext: ModelContext
     @Environment(\.dismiss) var dismiss
     @State private var percentageText: String
-    
+
     init(presetToEdit: TipPreset?, modelContext: ModelContext) {
         self.presetToEdit = presetToEdit
         self.modelContext = modelContext
         // If editing an existing preset, prefill the text field.
         _percentageText = State(initialValue: presetToEdit.map { String(Int($0.percentage * 100)) } ?? "")
     }
-    
+
     var body: some View {
         NavigationStack {
             Form {
@@ -120,11 +123,6 @@ struct AddEditPresetSheet: View {
     }
 }
 
-struct TipPresetSettingsView_Previews: PreviewProvider {
-    static var previews: some View {
-        NavigationStack {
-            TipPresetSettingsView()
-        }
-        .preferredColorScheme(.light)
-    }
+#Preview {
+    TipPresetSettingsView()
 }
