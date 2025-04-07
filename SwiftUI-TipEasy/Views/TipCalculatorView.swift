@@ -27,9 +27,15 @@ struct TipCalculatorView: View {
     @State private var isEditingCustomTip: Bool = false
     @State private var tipWorkItem: DispatchWorkItem?
 
-    // Add to existing properties
     @State private var showingImagePicker = false
     @State private var showingCamera = false
+
+    @State private var showingSavedCalculation = false
+    @State private var savedCalculation: CalculationHistory?
+
+    @State private var selectedCategory: ExpenseCategory = .restaurant
+    @State private var showingDeleteAlert = false
+    @State private var calculationToDelete: CalculationHistory?
 
     // Default presets (if no models exist).
     private let defaultPresets: [Double] = [0.10, 0.12, 0.15, 0.18, 0.20, 0.22, 0.25]
@@ -37,7 +43,90 @@ struct TipCalculatorView: View {
 
     @State private var showingHistory: Bool = false
     @State private var capturedPhoto: Data?
-    @StateObject private var locationManager = LocationManager()
+    @State private var locationManager = LocationManager()
+
+    // MARK: - Body
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 15) {
+                Text("Tip Easy")
+                    .font(.largeTitle)
+                    .bold()
+                billInputField
+                tipPercentageSlider
+                presetButtonRows
+                customTipInputField
+                summaryView
+                categorySelectorView
+                imageAndSaveView
+
+                // Add save button
+                Button(action: saveCalculation) {
+                    Label("Save Calculation", systemImage: "square.and.arrow.down")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(bill <= 0)
+
+                Spacer()
+
+                // Add history button
+                Button {
+                    showingHistory = true
+                } label: {
+                    Label("View History", systemImage: "clock.arrow.circlepath")
+                }
+                .padding(.bottom, 8)
+
+                AdBannerView(adUnitID: "ca-app-pub-3911596373332918/3954995797")
+                    .frame(height: 50)
+            }
+            .padding()
+        }.sheet(isPresented: $showingCamera) {
+            ImagePicker(image: $capturedPhoto, sourceType: .camera)
+        }.sheet(isPresented: $showingSavedCalculation, onDismiss: {
+            savedCalculation = nil
+            capturedPhoto = nil
+        }) {
+            if let calculation = savedCalculation {
+                SavedCalculationView(calculation: calculation)
+            }
+        }
+        .sheet(isPresented: $showingHistory) {
+            HistoryView(history: history) { calculation in
+                calculationToDelete = calculation
+                showingDeleteAlert = true
+            }
+        }
+        // ...existing sheets...
+        .sheet(isPresented: $showingImagePicker) {
+            PhotosPicker(selection: Binding(
+                get: { [] },
+                set: { items in
+                    if let item = items.first {
+                        loadTransferable(from: item)
+                    }
+                }
+            ), matching: .images, photoLibrary: .shared()) {
+                Text("Select a photo")
+            }
+        }
+        .alert("Delete Calculation", isPresented: $showingDeleteAlert) {
+            Button("Cancel", role: .cancel) {}
+            Button("Delete", role: .destructive) {
+                if let calculation = calculationToDelete {
+                    modelContext.delete(calculation)
+                    calculationToDelete = nil
+                }
+            }
+        } message: {
+            Text("Are you sure you want to delete this calculation?")
+        }
+        .onAppear {
+            locationManager.requestLocation()
+        }
+    }
 
     // MARK: - Computed Properties
 
@@ -85,6 +174,8 @@ struct TipCalculatorView: View {
         }
     }
 
+    // MARK: - View Components
+
     // Create rows from the presetPercentageValues.
     private var presetButtonRows: some View {
         let presets = presetPercentageValues
@@ -107,8 +198,6 @@ struct TipCalculatorView: View {
             }
         }
     }
-
-    // MARK: - View Components
 
     private var billInputField: some View {
         HStack {
@@ -184,6 +273,16 @@ struct TipCalculatorView: View {
         .animation(.default, value: totalAmount)
     }
 
+    private var categorySelectorView: some View {
+        Picker("Category", selection: $selectedCategory) {
+            ForEach(ExpenseCategory.allCases, id: \.self) { category in
+                Label(category.rawValue, systemImage: category.icon)
+            }
+        }
+        .pickerStyle(.menu)
+        .padding(.vertical, 5)
+    }
+
     private var imageAndSaveView: some View {
         HStack {
             Button(action: { showingCamera = true }) {
@@ -194,40 +293,13 @@ struct TipCalculatorView: View {
                 Label("Save", systemImage: "square.and.arrow.down")
             }
 
-            NavigationLink {
-                HistoryView()
-            } label: {
-                Label("History", systemImage: "clock")
-            }
+//            NavigationLink {
+//                HistoryView(history: history)
+//            } label: {
+//                Label("History", systemImage: "clock")
+//            }
         }
         .padding()
-    }
-
-    // MARK: - Body
-
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: 15) {
-                Text("Tip Easy")
-                    .font(.largeTitle)
-                    .bold()
-                billInputField
-                tipPercentageSlider
-                presetButtonRows
-                customTipInputField
-                summaryView
-                imageAndSaveView
-
-                Spacer()
-                AdBannerView(adUnitID: "ca-app-pub-3911596373332918/3954995797")
-                    .frame(height: 50)
-            }
-            .padding()
-        }.sheet(isPresented: $showingCamera) {
-            ImagePicker(image: $capturedPhoto, sourceType: .camera)
-        }.onAppear {
-            locationManager.requestLocation()
-        }
     }
 
     // MARK: - Helper Methods
@@ -314,11 +386,28 @@ struct TipCalculatorView: View {
             tipAmount: computedTipAmount,
             totalAmount: totalAmount,
             timestamp: Date(),
-            location: locationManager.currentLocation,
-            photo: capturedPhoto
+            location: locationManager.lastLocation?.coordinate,
+            photo: capturedPhoto,
+            category: selectedCategory
         )
         modelContext.insert(calculation)
         try? modelContext.save()
+
+        savedCalculation = calculation
+        showingSavedCalculation = true
+    }
+
+    private func loadTransferable(from item: PhotosPickerItem) {
+        item.loadTransferable(type: Data.self) { result in
+            switch result {
+            case .success(let data):
+                DispatchQueue.main.async {
+                    self.capturedPhoto = data
+                }
+            case .failure(let error):
+                print("Error loading image: \(error)")
+            }
+        }
     }
 }
 

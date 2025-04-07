@@ -1,141 +1,198 @@
-//
-//  HistoryView.swift
-//  SwiftUI-TipEasy
-//
-//  Created by Chirag Kular on 4/5/25.
-//
-import Charts
-import Foundation
-import SwiftData
+import MapKit
 import SwiftUI
 
 struct HistoryView: View {
-    @Query private var history: [CalculationHistory]
-    @State private var selectedTimeframe: Timeframe = .all
+    let history: [CalculationHistory]
+    let onDelete: (CalculationHistory) -> Void
     
-    enum Timeframe {
-        case all, year, ytd, month
-    }
-    
-    private var groupedHistory: [(String, [CalculationHistory])] {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMMM yyyy"
-        
-        let filtered = history.filter { calculation in
-            switch selectedTimeframe {
-            case .all: return true
-            case .year:
-                return Calendar.current.isDate(calculation.timestamp, equalTo: Date(), toGranularity: .year)
-            case .ytd:
-                return calculation.timestamp <= Date() &&
-                    Calendar.current.isDate(calculation.timestamp, equalTo: Date(), toGranularity: .year)
-            case .month:
-                return Calendar.current.isDate(calculation.timestamp, equalTo: Date(), toGranularity: .month)
-            }
-        }
-        
-        let grouped = Dictionary(grouping: filtered) { formatter.string(from: $0.timestamp) }
-        return grouped.sorted { $0.key > $1.key }
-    }
+    @Environment(\.dismiss) private var dismiss
+    @State private var selectedCalculation: CalculationHistory?
+    @State private var showingDetail = false
     
     var body: some View {
-        VStack {
-            Picker("Timeframe", selection: $selectedTimeframe) {
-                Text("All").tag(Timeframe.all)
-                Text("This Year").tag(Timeframe.year)
-                Text("YTD").tag(Timeframe.ytd)
-                Text("This Month").tag(Timeframe.month)
-            }
-            .pickerStyle(.segmented)
-            .padding()
-            
+        NavigationStack {
             List {
-                ForEach(groupedHistory, id: \.0) { month, transactions in
-                    Section(header: MonthSectionHeader(month: month, transactions: transactions)) {
-                        ForEach(transactions, id: \.timestamp) { transaction in
-                            TransactionRow(transaction: transaction)
+                ForEach(history) { calculation in
+                    HistoryRowView(calculation: calculation)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            selectedCalculation = calculation
+                            showingDetail = true
+                        }
+                        .swipeActions {
+                            Button(role: .destructive) {
+                                onDelete(calculation)
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
+                }
+            }
+            .navigationTitle("Calculation History")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+            .sheet(isPresented: $showingDetail) {
+                if let calculation = selectedCalculation {
+                    HistoryDetailView(calculation: calculation)
+                }
+            }
+            .overlay {
+                if history.isEmpty {
+                    ContentUnavailableView(
+                        "No History",
+                        systemImage: "clock.arrow.circlepath",
+                        description: Text("Save calculations to see them here.")
+                    )
+                }
+            }
+        }
+    }
+}
+
+struct HistoryRowView: View {
+    let calculation: CalculationHistory
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Label(calculation.category.rawValue, systemImage: calculation.category.icon)
+                    .font(.headline)
+                Spacer()
+                Text(currencyFormatter.string(from: NSNumber(value: calculation.totalAmount)) ?? "$0.00")
+                    .font(.headline)
+            }
+            
+            Text(dateFormatter.string(from: calculation.timestamp))
+                .font(.caption)
+                .foregroundColor(.secondary)
+            
+            HStack {
+                Text("Bill: \(formatCurrency(calculation.billAmount))")
+                Text("•")
+                Text("Tip: \(Int(calculation.tipPercentage * 100))%")
+                
+                if calculation.photo != nil {
+                    Spacer()
+                    Image(systemName: "photo")
+                        .foregroundColor(.secondary)
+                }
+            }
+            .font(.caption)
+            .foregroundColor(.secondary)
+        }
+        .padding(.vertical, 4)
+    }
+    
+    private func formatCurrency(_ value: Double) -> String {
+        currencyFormatter.string(from: NSNumber(value: value)) ?? "$0.00"
+    }
+    
+    private var dateFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        return formatter
+    }
+    
+    private var currencyFormatter: NumberFormatter {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.currencyCode = "USD"
+        return formatter
+    }
+}
+
+struct HistoryDetailView: View {
+    let calculation: CalculationHistory
+    
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Photo if available
+                    if let photoData = calculation.photo, let uiImage = UIImage(data: photoData) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFit()
+                            .cornerRadius(12)
+                            .frame(maxHeight: 250)
+                    }
+                    
+                    // Summary card
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Label(calculation.category.rawValue, systemImage: calculation.category.icon)
+                                .font(.headline)
+                            Spacer()
+                            Text(formatDate(calculation.timestamp))
+                                .font(.caption)
+                        }
+                        
+                        Divider()
+                        
+                        detailRow(title: "Bill Amount:", value: calculation.billAmount)
+                        detailRow(title: "Tip (\(Int(calculation.tipPercentage * 100))%):", value: calculation.tipAmount)
+                        
+                        Divider()
+                        
+                        detailRow(title: "Total Amount:", value: calculation.totalAmount, isTotal: true)
+                    }
+                    .padding()
+                    .background(Color(.secondarySystemBackground))
+                    .cornerRadius(12)
+                    
+                    // Map if location available
+                    if let location = calculation.location {
+                        VStack(alignment: .leading) {
+                            Text("Location")
+                                .font(.headline)
+                                .padding(.bottom, 4)
+                            
+                            Map(initialPosition: .region(MKCoordinateRegion(
+                                center: location,
+                                span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+                            ))) {
+                                Marker("", coordinate: location)
+                            }
+                            .frame(height: 200)
+                            .cornerRadius(12)
                         }
                     }
                 }
-            }
-            
-            if !history.isEmpty {
-                Chart {
-                    ForEach(groupedHistory, id: \.0) { month, transactions in
-                        BarMark(
-                            x: .value("Month", month),
-                            y: .value("Total", transactions.reduce(0) { $0 + $1.totalAmount })
-                        )
-                    }
-                }
-                .frame(height: 200)
                 .padding()
             }
+            .navigationTitle("Calculation Details")
+            .navigationBarTitleDisplayMode(.inline)
         }
     }
-}
-
-struct MonthSectionHeader: View {
-    let month: String
-    let transactions: [CalculationHistory]
     
-    var total: Double {
-        transactions.reduce(0) { $0 + $1.totalAmount }
-    }
-    
-    var body: some View {
+    private func detailRow(title: String, value: Double, isTotal: Bool = false) -> some View {
         HStack {
-            Text(month)
+            Text(title)
+                .font(isTotal ? .headline : .body)
             Spacer()
-            Text("Total: $\(total, specifier: "%.2f")")
-                .font(.subheadline)
+            Text(formatCurrency(value))
+                .font(isTotal ? .headline : .body)
+                .fontWeight(isTotal ? .bold : .regular)
         }
     }
-}
-
-struct TransactionRow: View {
-    let transaction: CalculationHistory
     
-    var body: some View {
-        VStack(alignment: .leading) {
-            HStack {
-                Text("$\(transaction.billAmount, specifier: "%.2f")")
-                    .font(.headline)
-                Spacer()
-                Text(transaction.timestamp, style: .date)
-                    .font(.subheadline)
-            }
-            
-            HStack {
-                Text("Tip: $\(transaction.tipAmount, specifier: "%.2f")")
-                Text("(\(Int(transaction.tipPercentage * 100))%)")
-                Spacer()
-                if let location = transaction.location {
-                    Text(location)
-                        .font(.caption)
-                }
-            }
-            
-            if let photoData = transaction.photo,
-               let uiImage = UIImage(data: photoData)
-            {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(height: 100)
-            }
-        }
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
     }
-}
-
-#Preview {
-    let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    let container = try! ModelContainer(for: CalculationHistory.self, configurations: config)
-
-    // Insert sample data
-    let context = container.mainContext
-    CalculationHistory.sampleTransactions.forEach { context.insert($0) }
-
-    return HistoryView()
-        .modelContainer(container)
+    
+    private func formatCurrency(_ value: Double) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.currencyCode = "USD"
+        return formatter.string(from: NSNumber(value: value)) ?? "$0.00"
+    }
 }
