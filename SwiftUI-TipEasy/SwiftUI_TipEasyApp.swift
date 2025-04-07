@@ -21,12 +21,26 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 @main
 struct TipEasyApp: App {
+    // Use AppDelegate for Google Mobile Ads
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+
+    let modelContainer: ModelContainer
+
+    init() {
+        do {
+            modelContainer = try ModelContainer(for:
+                TipPreset.self,
+                CalculationHistory.self)
+        }
+        catch {
+            fatalError("Failed to create model container: \(error)")
+        }
+    }
 
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .modelContainer(for: [TipPreset.self])
+                .modelContainer(modelContainer)
         }
     }
 }

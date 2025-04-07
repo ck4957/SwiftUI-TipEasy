@@ -1,4 +1,6 @@
+import Charts
 import Combine
+import PhotosUI
 import SwiftData
 import SwiftUI
 
@@ -7,34 +9,42 @@ enum TipInputMode {
 }
 
 struct TipCalculatorView: View {
+    // Instead of using AppStorage, we query the TipPreset model.
+    @Query(sort: \TipPreset.percentage) private var tipPresets: [TipPreset]
+    @Query(sort: \CalculationHistory.timestamp, order: .reverse) private var history: [CalculationHistory]
+
+    @Environment(\.modelContext) private var modelContext
+
     // MARK: - Properties
-    
+
     @State private var billAmount: String = ""
-    
-    // Remove separate tip amount and percentage fields.
-    // Use one custom tip field:
     @State private var customTipValue: String = ""
     @State private var tipInputMode: TipInputMode = .percentage
-    
+
     @State private var selectedTipPercentage: Double = 0.15
     @State private var tipPercentage: Double = 0.15
     @State private var shouldClearCustomFields: Bool = true
     @State private var isEditingCustomTip: Bool = false
     @State private var tipWorkItem: DispatchWorkItem?
-    
-    // Instead of using AppStorage, we query the TipPreset model.
-    @Query(sort: \TipPreset.percentage) private var tipPresets: [TipPreset]
-    
+
+    // Add to existing properties
+    @State private var showingImagePicker = false
+    @State private var showingCamera = false
+
     // Default presets (if no models exist).
     private let defaultPresets: [Double] = [0.10, 0.12, 0.15, 0.18, 0.20, 0.22, 0.25]
     private let debounceInterval: TimeInterval = 0.8
-    
+
+    @State private var showingHistory: Bool = false
+    @State private var capturedPhoto: Data?
+    @StateObject private var locationManager = LocationManager()
+
     // MARK: - Computed Properties
 
     private var bill: Double {
         Double(billAmount) ?? 0
     }
-    
+
     // When in percentage mode, customTipValue is treated as percentage (e.g., 15 means 15%)
     // When in dollar mode, customTipValue is treated as tip dollars.
     private var computedTipPercentage: Double {
@@ -48,7 +58,7 @@ struct TipCalculatorView: View {
         }
         return tipPercentage
     }
-    
+
     private var computedTipAmount: Double {
         switch tipInputMode {
         case .percentage:
@@ -60,11 +70,11 @@ struct TipCalculatorView: View {
             return bill * tipPercentage
         }
     }
-    
+
     private var totalAmount: Double {
         bill + computedTipAmount
     }
-    
+
     // Calculate preset percentages based on TipPreset models.
     // If no presets exist in the model container, use defaultPresets.
     private var presetPercentageValues: [Double] {
@@ -74,7 +84,7 @@ struct TipCalculatorView: View {
             return tipPresets.map { $0.percentage }
         }
     }
-    
+
     // Create rows from the presetPercentageValues.
     private var presetButtonRows: some View {
         let presets = presetPercentageValues
@@ -97,9 +107,9 @@ struct TipCalculatorView: View {
             }
         }
     }
-    
+
     // MARK: - View Components
-    
+
     private var billInputField: some View {
         HStack {
             Label("", systemImage: "dollarsign")
@@ -108,7 +118,7 @@ struct TipCalculatorView: View {
                 .textFieldStyle(RoundedTextFieldStyle())
         }
     }
-    
+
     private var tipPercentageSlider: some View {
         VStack {
             Slider(value: $selectedTipPercentage, in: 0 ... 0.50, step: 0.01)
@@ -119,23 +129,27 @@ struct TipCalculatorView: View {
             Text("Tip Percentage: \(Int(selectedTipPercentage * 100))%")
         }
     }
-    
+
     // A single custom tip input field with a toggle to switch between percentage and dollar mode.
     private var customTipInputField: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                TextField(tipInputMode == .percentage ?
-                    "Enter tip percentage" : "Enter tip amount", text: $customTipValue, onEditingChanged: handleCustomTipEditing)
-                    .keyboardType(.decimalPad)
-                    .textFieldStyle(RoundedTextFieldStyle())
-            
+                TextField(
+                    tipInputMode == .percentage ? "Enter tip percentage" : "Enter tip amount",
+                    text: $customTipValue, onEditingChanged: handleCustomTipEditing
+                )
+                .keyboardType(.decimalPad)
+                .textFieldStyle(RoundedTextFieldStyle())
+
                 Button(action: {
                     tipInputMode = .percentage
                 }) {
                     Label("", systemImage: "percent")
                         .padding()
                         // .frame(maxWidth: .infinity)
-                        .background(tipInputMode == .percentage ? Color.blue : Color.gray.opacity(0.3))
+                        .background(
+                            tipInputMode == .percentage ? Color.blue : Color.gray.opacity(0.3)
+                        )
                         .foregroundColor(.white)
                         .cornerRadius(8)
                 }
@@ -152,11 +166,13 @@ struct TipCalculatorView: View {
             }
         }
     }
-    
+
     private var summaryView: some View {
         VStack(spacing: 10) {
             Text("Bill: $\(bill, specifier: "%.2f")")
-            Text("Tip: $\(computedTipAmount, specifier: "%.2f") (\(Int(computedTipPercentage * 100))%)")
+            Text(
+                "Tip: $\(computedTipAmount, specifier: "%.2f") (\(Int(computedTipPercentage * 100))%)"
+            )
             Divider()
             HStack(alignment: .center) {
                 Text("Total: $\(totalAmount, specifier: "%.2f")")
@@ -167,28 +183,55 @@ struct TipCalculatorView: View {
         .padding()
         .animation(.default, value: totalAmount)
     }
-    
-    // MARK: - Body
-    
-    var body: some View {
-        VStack(spacing: 15) {
-            Text("Tip Easy")
-                .font(.largeTitle)
-                .bold()
-            billInputField
-            tipPercentageSlider
-            presetButtonRows
-            customTipInputField
-            summaryView
-            Spacer()
-            AdBannerView(adUnitID: "ca-app-pub-3911596373332918/3954995797")
-                .frame(height: 50)
+
+    private var imageAndSaveView: some View {
+        HStack {
+            Button(action: { showingCamera = true }) {
+                Label("Add Photo", systemImage: "camera")
+            }
+
+            Button(action: saveCalculation) {
+                Label("Save", systemImage: "square.and.arrow.down")
+            }
+
+            NavigationLink {
+                HistoryView()
+            } label: {
+                Label("History", systemImage: "clock")
+            }
         }
         .padding()
     }
-    
+
+    // MARK: - Body
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 15) {
+                Text("Tip Easy")
+                    .font(.largeTitle)
+                    .bold()
+                billInputField
+                tipPercentageSlider
+                presetButtonRows
+                customTipInputField
+                summaryView
+                imageAndSaveView
+
+                Spacer()
+                AdBannerView(adUnitID: "ca-app-pub-3911596373332918/3954995797")
+                    .frame(height: 50)
+            }
+            .padding()
+        }.sheet(isPresented: $showingCamera) {
+            ImagePicker(image: $capturedPhoto, sourceType: .camera)
+        }.onAppear {
+            locationManager.requestLocation()
+        }
+    }
+
     // MARK: - Helper Methods
-    
+
     private func createPresetButton(for percentage: Double) -> some View {
         Button(action: {
             shouldClearCustomFields = true
@@ -197,14 +240,16 @@ struct TipCalculatorView: View {
             Text("\(Int(percentage * 100))%")
                 .padding()
                 // .frame(maxWidth: 20)
-                .background((abs(percentage - tipPercentage) < 0.001)
-                    ? Color.blue.opacity(0.7)
-                    : Color.blue)
+                .background(
+                    (abs(percentage - tipPercentage) < 0.001)
+                        ? Color.blue.opacity(0.7)
+                        : Color.blue
+                )
                 .foregroundColor(.white)
                 .cornerRadius(8)
         }
     }
-    
+
     private func updateTipFromSlider(_ newValue: Double) {
         withAnimation {
             tipPercentage = newValue
@@ -213,7 +258,7 @@ struct TipCalculatorView: View {
             cancelTipWorkItem()
         }
     }
-    
+
     private func updateTipFromPreset(_ percentage: Double) {
         withAnimation {
             tipPercentage = percentage
@@ -222,15 +267,15 @@ struct TipCalculatorView: View {
             cancelTipWorkItem()
         }
     }
-    
+
     private func clearCustomTipField() {
         customTipValue = ""
     }
-    
+
     private func cancelTipWorkItem() {
         tipWorkItem?.cancel()
     }
-    
+
     private func debouncedCustomTipUpdate(oldValue: String, newValue: String) {
         cancelTipWorkItem()
         let workItem = DispatchWorkItem {
@@ -239,14 +284,14 @@ struct TipCalculatorView: View {
         tipWorkItem = workItem
         DispatchQueue.main.asyncAfter(deadline: .now() + debounceInterval, execute: workItem)
     }
-    
+
     private func handleCustomTipEditing(_ editing: Bool) {
         isEditingCustomTip = editing
         if !editing {
             updateCustomTip()
         }
     }
-    
+
     private func updateCustomTip() {
         guard !customTipValue.trimmingCharacters(in: .whitespaces).isEmpty, bill > 0 else { return }
         withAnimation {
@@ -260,6 +305,20 @@ struct TipCalculatorView: View {
             selectedTipPercentage = tipPercentage
             shouldClearCustomFields = false
         }
+    }
+
+    private func saveCalculation() {
+        let calculation = CalculationHistory(
+            billAmount: bill,
+            tipPercentage: tipPercentage,
+            tipAmount: computedTipAmount,
+            totalAmount: totalAmount,
+            timestamp: Date(),
+            location: locationManager.currentLocation,
+            photo: capturedPhoto
+        )
+        modelContext.insert(calculation)
+        try? modelContext.save()
     }
 }
 
