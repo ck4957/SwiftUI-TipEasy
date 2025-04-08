@@ -15,6 +15,10 @@ struct TipCalculatorView: View {
 
     @Environment(\.modelContext) private var modelContext
 
+    // Add AppStorage to track onboarding state
+    @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding: Bool = false
+    @State private var isOnboardingPresented: Bool = false
+
     // MARK: - Properties
 
     @State private var billAmount: String = ""
@@ -123,8 +127,18 @@ struct TipCalculatorView: View {
         } message: {
             Text("Are you sure you want to delete this calculation?")
         }
+        // Add onboarding sheet
+        .sheet(isPresented: $isOnboardingPresented) {
+            AppOnboardingView(isOnboardingPresented: $isOnboardingPresented)
+        }
         .onAppear {
             locationManager.requestLocation()
+
+            // Check if we should show onboarding
+            if !hasSeenOnboarding {
+                isOnboardingPresented = true
+                hasSeenOnboarding = true
+            }
         }
     }
 

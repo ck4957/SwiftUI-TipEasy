@@ -16,6 +16,9 @@
 //     @Query(sort: \CalculationHistory.timestamp, order: .reverse) private var history: [CalculationHistory]
 //     @Environment(\.modelContext) private var modelContext
 
+//   // Add AppStorage to track onboarding state
+//     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding: Bool = false
+//     @State private var isOnboardingPresented: Bool = false
 //     // Focus state for keyboard management
 //     @FocusState private var focusedField: Field?
 
@@ -160,6 +163,10 @@
 //                 showingDeleteAlert = true
 //             }
 //         }
+// // Add onboarding sheet
+//         .sheet(isPresented: $isOnboardingPresented) {
+//             AppOnboardingView(isOnboardingPresented: $isOnboardingPresented)
+//         }
 //         .alert("Delete Calculation", isPresented: $showingDeleteAlert) {
 //             Button("Cancel", role: .cancel) {}
 //             Button("Delete", role: .destructive) {
@@ -169,6 +176,14 @@
 //                 }
 //             }
 //         }
+// .onAppear {
+
+//     // Check if we should show onboarding
+//     if !hasSeenOnboarding {
+//         isOnboardingPresented = true
+//         hasSeenOnboarding = true
+//     }
+// }
 //     }
 
 //     // MARK: - View Components
