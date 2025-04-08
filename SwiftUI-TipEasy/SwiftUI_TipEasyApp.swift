@@ -24,6 +24,9 @@ struct TipEasyApp: App {
     // Use AppDelegate for Google Mobile Ads
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
+    // App Version
+    @StateObject private var versionChecker = AppVersionChecker()
+
     let modelContainer: ModelContainer
 
     init() {
@@ -47,8 +50,31 @@ struct TipEasyApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .modelContainer(modelContainer)
+            ZStack {
+                ContentView()
+                    .modelContainer(modelContainer)
+                    .onAppear {
+                        versionChecker.checkForUpdates()
+                    }
+                // Overlay the update screen when an update is required
+                if versionChecker.isUpdateRequired {
+                    Color(.systemBackground)
+                        .ignoresSafeArea()
+
+                    AppUpdateView(
+                        currentVersion: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0",
+                        latestVersion: versionChecker.latestVersion ?? "Unknown",
+                        releaseNotes: versionChecker.releaseNotes,
+                        updateAction: {
+                            if let url = versionChecker.appStoreURL {
+                                UIApplication.shared.open(url)
+                            }
+                        }
+                    )
+                    .transition(.opacity)
+                }
+            }
+            .animation(.easeInOut, value: versionChecker.isUpdateRequired)
         }
     }
 }
