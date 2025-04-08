@@ -27,14 +27,22 @@ struct TipEasyApp: App {
     let modelContainer: ModelContainer
 
     init() {
-        do {
-            modelContainer = try ModelContainer(for:
+        // Add schema migration options
+        let configuration = ModelConfiguration(
+            schema: Schema([
                 TipPreset.self,
-                CalculationHistory.self)
-        }
-        catch {
-            fatalError("Failed to create model container: \(error)")
-        }
+                CalculationHistory.self,
+                LocationCoordinate.self
+            ]),
+            isStoredInMemoryOnly: false,
+            allowsSave: true
+        )
+
+        modelContainer = try! ModelContainer(for:
+            TipPreset.self,
+            CalculationHistory.self,
+            LocationCoordinate.self,
+            configurations: configuration)
     }
 
     var body: some Scene {

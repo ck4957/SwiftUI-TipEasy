@@ -18,7 +18,18 @@ final class CalculationHistory {
     var photo: Data?
     @Attribute(originalName: "category") private var categoryRawValue: String
 
-    @Attribute(.externalStorage) var location: CLLocationCoordinate2D?
+    var locationCoordinate: LocationCoordinate?
+    // Computed property to maintain the same interface
+    var location: CLLocationCoordinate2D? {
+        get { locationCoordinate?.coordinate }
+        set {
+            if let newValue = newValue {
+                locationCoordinate = LocationCoordinate(coordinate: newValue)
+            } else {
+                locationCoordinate = nil
+            }
+        }
+    }
 
     var category: ExpenseCategory {
         get {
@@ -43,9 +54,14 @@ final class CalculationHistory {
         self.tipAmount = tipAmount
         self.totalAmount = totalAmount
         self.timestamp = timestamp
-        self.location = location
         self.photo = photo
         self.categoryRawValue = category.rawValue
+
+         if let location = location {
+            self.locationCoordinate = LocationCoordinate(coordinate: location)
+        } else {
+            self.locationCoordinate = nil
+        }
     }
 }
 
