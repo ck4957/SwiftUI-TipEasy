@@ -8,6 +8,7 @@ struct AppUpdateView: View {
     
     var body: some View {
         VStack(spacing: 20) {
+            Spacer()
             Image(systemName: "arrow.up.circle.fill")
                 .font(.system(size: 80))
                 .foregroundColor(.blue)

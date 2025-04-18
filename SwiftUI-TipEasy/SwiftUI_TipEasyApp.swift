@@ -25,7 +25,7 @@ struct TipEasyApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     // App Version
-    @StateObject private var versionChecker = AppVersionChecker()
+    @State private var versionChecker = AppVersionChecker()
 
     let modelContainer: ModelContainer
 
@@ -53,28 +53,8 @@ struct TipEasyApp: App {
             ZStack {
                 ContentView()
                     .modelContainer(modelContainer)
-                    .onAppear {
-                        versionChecker.checkForUpdates()
-                    }
-                // Overlay the update screen when an update is required
-                if versionChecker.isUpdateRequired {
-                    Color(.systemBackground)
-                        .ignoresSafeArea()
-
-                    AppUpdateView(
-                        currentVersion: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0",
-                        latestVersion: versionChecker.latestVersion ?? "Unknown",
-                        releaseNotes: versionChecker.releaseNotes,
-                        updateAction: {
-                            if let url = versionChecker.appStoreURL {
-                                UIApplication.shared.open(url)
-                            }
-                        }
-                    )
-                    .transition(.opacity)
-                }
+                    .checkForAppUpdates(using: versionChecker)
             }
-            .animation(.easeInOut, value: versionChecker.isUpdateRequired)
         }
     }
 }
