@@ -7,6 +7,7 @@ struct AppOnboardingView: View {
         TabView {
             // First page
             VStack(spacing: 20) {
+                Spacer()
                 Image(systemName: "dollarsign.circle.fill")
                     .resizable()
                     .scaledToFit()
@@ -36,10 +37,11 @@ struct AppOnboardingView: View {
             
             // Second page
             VStack(spacing: 20) {
+                Spacer()
                 Image(systemName: "percent")
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 150, height: 150)
+                    .frame(width: 100, height: 100)
                     .foregroundColor(.blue)
                 
                 Text("Easy Tip Calculation")
@@ -65,6 +67,7 @@ struct AppOnboardingView: View {
             
             // Third page
             VStack(spacing: 20) {
+                Spacer()
                 Image(systemName: "clock.arrow.circlepath")
                     .resizable()
                     .scaledToFit()
