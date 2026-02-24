@@ -14,63 +14,61 @@ struct TipPresetSettingsView: View {
     @State private var presetToEdit: TipPreset? = nil
 
     var body: some View {
-        NavigationStack {
-            Form {
-                Section(header: Text("Custom Tip Percentages (in %)")) {
-                    ForEach(tipPresets) { preset in
-                        HStack {
-                            Text("\(Int(preset.percentage * 100))%")
-                                .onTapGesture {
-                                    presetToEdit = preset
-                                    showingPresetSheet = true
-                                }
+        Form {
+            Section {
+                ForEach(tipPresets) { preset in
+                    HStack {
+                        Image(systemName: "percent")
+                            .foregroundStyle(.secondary)
+                            .font(.title3)
 
-                            Spacer()
+                        Text("\(Int(preset.percentage * 100))%")
+                            .font(.body)
+                            .fontWeight(.medium)
 
-                            // Delete button for each preset.
-                            Button {
+                        Spacer()
+
+                        Button {
+                            presetToEdit = preset
+                            showingPresetSheet = true
+                        } label: {
+                            Text("Edit")
+                                .font(.body)
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(.accentColor)
+
+                        Button(role: .destructive) {
+                            withAnimation {
                                 modelContext.delete(preset)
-                            } label: {
-                                Image(systemName: "minus.circle.fill")
-                                    .foregroundColor(.red)
                             }
+                        } label: {
+                            Image(systemName: "trash")
+                                .font(.body)
                         }
+                        .buttonStyle(.bordered)
+                        .accessibilityLabel("Delete preset")
                     }
-
-                    // Plus button to add a new preset.
-                    Button {
-                        presetToEdit = nil
-                        showingPresetSheet = true
-                    } label: {
-                        HStack {
-                            Image(systemName: "plus.circle.fill")
-                            Text("Add Preset")
-                        }
-                        .foregroundColor(.blue)
-                    }
+                    .padding(.vertical, 4)
                 }
 
-                Section {
-                    Button {
-                        // Save is automatic for SwiftData.
-                        dismiss()
-                    } label: {
-                        HStack {
-                            Spacer()
-                            Text("Save")
-                                .font(.headline)
-                            Spacer()
-                        }
-                    }
+                Button {
+                    presetToEdit = nil
+                    showingPresetSheet = true
+                } label: {
+                    Label("Add New Preset", systemImage: "plus.circle.fill")
+                        .font(.body)
                 }
+            } header: {
+                Text("Tip Percentages")
+            } footer: {
+                Text("Tap Edit to modify a preset or Add to create a new one. These percentages will appear as quick options in the calculator.")
             }
-            .navigationTitle("Preset Settings")
-            .sheet(isPresented: $showingPresetSheet) {
-                AddEditPresetSheet(presetToEdit: presetToEdit, modelContext: modelContext)
-            }
-            Spacer() // Ensure the form takes the full height of the screen, especially on iOS 16.
-            AdBannerView(adUnitID: "ca-app-pub-3911596373332918/3954995797") // Replace with your ad unit ID
-                .frame(height: 50)
+        }
+        .navigationTitle("Preset Settings")
+        .navigationBarTitleDisplayMode(.large)
+        .sheet(isPresented: $showingPresetSheet) {
+            AddEditPresetSheet(presetToEdit: presetToEdit, modelContext: modelContext)
         }
     }
 }

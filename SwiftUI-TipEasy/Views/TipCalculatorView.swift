@@ -6,6 +6,17 @@ enum TipInputMode {
     case percentage, dollar
 }
 
+// MARK: - Design System Constants
+extension CGFloat {
+    static let cornerRadiusSmall: CGFloat = 8
+    static let cornerRadiusMedium: CGFloat = 10
+    static let cornerRadiusLarge: CGFloat = 12
+    static let minimumTouchTarget: CGFloat = 44
+    static let spacingSmall: CGFloat = 8
+    static let spacingMedium: CGFloat = 12
+    static let spacingLarge: CGFloat = 20
+}
+
 struct TipCalculatorView: View {
     // MARK: - Properties
     
@@ -101,8 +112,11 @@ struct TipCalculatorView: View {
     // MARK: - View Components
     
     private var billInputField: some View {
-        HStack {
-            Label("", systemImage: "dollarsign")
+        HStack(spacing: .spacingMedium) {
+            Image(systemName: "dollarsign.circle.fill")
+                .font(.title2)
+                .foregroundStyle(.secondary)
+                .symbolRenderingMode(.hierarchical)
             TextField("Enter bill amount", text: $billAmount)
                 .keyboardType(.decimalPad)
                 .textFieldStyle(RoundedTextFieldStyle())
@@ -112,18 +126,20 @@ struct TipCalculatorView: View {
     private var tipPercentageSlider: some View {
         VStack {
             Slider(value: $selectedTipPercentage, in: 0 ... 0.50, step: 0.01)
-                .accentColor(.blue)
+                .tint(.accentColor)
                 .onChange(of: selectedTipPercentage) { _, newValue in
                     updateTipFromSlider(newValue)
                 }
             Text("Tip Percentage: \(Int(selectedTipPercentage * 100))%")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
         }
     }
     
     // A single custom tip input field with a toggle to switch between percentage and dollar mode.
     private var customTipInputField: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
+        VStack(alignment: .leading, spacing: .spacingSmall) {
+            HStack(spacing: .spacingSmall) {
                 TextField(tipInputMode == .percentage ?
                     "Enter tip percentage" : "Enter tip amount", text: $customTipValue, onEditingChanged: handleCustomTipEditing)
                     .keyboardType(.decimalPad)
@@ -132,49 +148,53 @@ struct TipCalculatorView: View {
                 Button(action: {
                     tipInputMode = .percentage
                 }) {
-                    Label("", systemImage: "percent")
-                        .padding()
-                        // .frame(maxWidth: .infinity)
-                        .background(tipInputMode == .percentage ? Color.blue : Color.gray.opacity(0.3))
-                        .foregroundColor(.white)
-                        .cornerRadius(8)
+                    Image(systemName: "percent")
+                        .frame(minWidth: .minimumTouchTarget, minHeight: .minimumTouchTarget)
                 }
+                .buttonStyle(.bordered)
+                .tint(tipInputMode == .percentage ? .accentColor : .secondary)
+                .accessibilityLabel("Percentage mode")
+                
                 Button(action: {
                     tipInputMode = .dollar
                 }) {
-                    Label("", systemImage: "dollarsign")
-                        .padding()
-                        // .frame(maxWidth: .infinity)
-                        .background(tipInputMode == .dollar ? Color.blue : Color.gray.opacity(0.3))
-                        .foregroundColor(.white)
-                        .cornerRadius(8)
+                    Image(systemName: "dollarsign")
+                        .frame(minWidth: .minimumTouchTarget, minHeight: .minimumTouchTarget)
                 }
+                .buttonStyle(.bordered)
+                .tint(tipInputMode == .dollar ? .accentColor : .secondary)
+                .accessibilityLabel("Dollar mode")
             }
         }
     }
     
     private var summaryView: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: .spacingMedium) {
             Text("Bill: $\(bill, specifier: "%.2f")")
             Text("Tip: $\(computedTipAmount, specifier: "%.2f") (\(Int(computedTipPercentage * 100))%)")
             Divider()
             HStack(alignment: .center) {
                 Text("Total: $\(totalAmount, specifier: "%.2f")")
+                    .font(.title2)
+                    .fontWeight(.semibold)
             }
         }
-        .font(.title3)
+        .font(.body)
         .fontWeight(.medium)
         .padding()
+        .background(.regularMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: .cornerRadiusLarge))
         .animation(.default, value: totalAmount)
     }
     
     // MARK: - Body
     
     var body: some View {
-        VStack(spacing: 15) {
+        VStack(spacing: .spacingLarge) {
             Text("Tip Easy")
                 .font(.largeTitle)
-                .bold()
+                .fontWeight(.bold)
+                .fontDesign(.rounded)
             billInputField
             tipPercentageSlider
             presetButtonRows
@@ -196,13 +216,14 @@ struct TipCalculatorView: View {
         }) {
             Text("\(Int(percentage * 100))%")
                 .padding()
-                // .frame(maxWidth: 20)
+                .frame(minWidth: .minimumTouchTarget, minHeight: .minimumTouchTarget)
                 .background((abs(percentage - tipPercentage) < 0.001)
-                    ? Color.blue.opacity(0.7)
-                    : Color.blue)
-                .foregroundColor(.white)
-                .cornerRadius(8)
+                    ? Color.accentColor
+                    : Color.accentColor.opacity(0.8))
+                .foregroundStyle(.white)
+                .clipShape(RoundedRectangle(cornerRadius: .cornerRadiusMedium))
         }
+        .buttonStyle(.plain)
     }
     
     private func updateTipFromSlider(_ newValue: Double) {
@@ -215,6 +236,10 @@ struct TipCalculatorView: View {
     }
     
     private func updateTipFromPreset(_ percentage: Double) {
+        // Provide haptic feedback
+        let impact = UIImpactFeedbackGenerator(style: .light)
+        impact.impactOccurred()
+        
         withAnimation {
             tipPercentage = percentage
             selectedTipPercentage = percentage
@@ -271,8 +296,13 @@ struct RoundedTextFieldStyle: TextFieldStyle {
             .keyboardType(.decimalPad)
             .submitLabel(.done)
             .padding()
-            .background(Color(.systemGray6))
-            .cornerRadius(8)
+            .frame(minHeight: .minimumTouchTarget)
+            .background(.regularMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: .cornerRadiusMedium))
+            .overlay(
+                RoundedRectangle(cornerRadius: .cornerRadiusMedium)
+                    .strokeBorder(Color.secondary.opacity(0.2), lineWidth: 1)
+            )
     }
 }
 

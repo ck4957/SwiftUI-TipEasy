@@ -1,22 +1,23 @@
 import GoogleMobileAds
+
 import SwiftUI
 
 struct ContentView: View {
-    init() {
-        // Start Google Mobile Ads
-        MobileAds.shared.start(completionHandler: nil)
-    }
-
     var body: some View {
         NavigationStack {
             TipCalculatorView()
                 .toolbar {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        NavigationLink(destination: TipPresetSettingsView()) {
-                            Image(systemName: "gear")
+                    ToolbarItem(placement: .topBarTrailing) {
+                        NavigationLink {
+                            TipPresetSettingsView()
+                        } label: {
+                            Image(systemName: "gearshape.fill")
+                                .symbolRenderingMode(.hierarchical)
                         }
+                        .glassEffect(.regular.interactive())
                     }
                 }
+                .toolbarBackground(.visible, for: .navigationBar)
         }
     }
 }
