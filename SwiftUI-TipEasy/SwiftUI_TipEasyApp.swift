@@ -26,7 +26,7 @@ struct TipEasyApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .modelContainer(for: [TipPreset.self])
+                .modelContainer(for: [TipPreset.self, TipTransaction.self])
         }
     }
 }
