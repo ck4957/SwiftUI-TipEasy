@@ -31,6 +31,7 @@ struct TipCalculatorView: View {
     @State private var showingScanner = false
     @State private var showingSavedConfirmation = false
     @State private var receiptScanResult: ReceiptScanResult?
+    @FocusState private var focusedInput: CalculatorInput?
 
     private let defaultPresets: [Double] = [0.15, 0.18, 0.20, 0.25]
     private let currencyCode = Locale.current.currency?.identifier ?? "USD"
@@ -120,6 +121,13 @@ struct TipCalculatorView: View {
                 .glassEffect(.regular.interactive())
                 .accessibilityLabel("Scan receipt")
             }
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") {
+                    dismissKeyboard()
+                }
+                .fontWeight(.semibold)
+            }
         }
         .tint(palette.accent)
         .safeAreaInset(edge: .bottom) {
@@ -173,6 +181,11 @@ struct TipCalculatorView: View {
 
             TextField("Restaurant or place", text: $restaurantName)
                 .textInputAutocapitalization(.words)
+                .submitLabel(.done)
+                .focused($focusedInput, equals: .restaurantName)
+                .onSubmit {
+                    dismissKeyboard()
+                }
                 .textFieldStyle(GlassTextFieldStyle(palette: palette))
 
             HStack(spacing: .spacingMedium) {
@@ -186,6 +199,7 @@ struct TipCalculatorView: View {
                     .font(.system(.largeTitle, design: .rounded).weight(.bold))
                     .textFieldStyle(.plain)
                     .submitLabel(.done)
+                    .focused($focusedInput, equals: .billAmount)
                     .accessibilityLabel("Bill amount")
             }
             .padding()
@@ -266,6 +280,8 @@ struct TipCalculatorView: View {
 
             TextField(tipInputMode == .percentage ? "Custom percentage" : "Custom tip amount", text: $customTipValue)
                 .keyboardType(.decimalPad)
+                .submitLabel(.done)
+                .focused($focusedInput, equals: .customTip)
                 .textFieldStyle(GlassTextFieldStyle(palette: palette))
                 .onChange(of: customTipValue) { _, newValue in
                     if !newValue.isEmpty {
@@ -366,6 +382,8 @@ struct TipCalculatorView: View {
             totalAmount: totalAmount
         )
         modelContext.insert(transaction)
+        dismissKeyboard()
+        resetCalculator()
         showingSavedConfirmation = true
     }
 
@@ -384,6 +402,17 @@ struct TipCalculatorView: View {
         let allowed = CharacterSet(charactersIn: "0123456789.")
         let filtered = String(text.unicodeScalars.filter { allowed.contains($0) })
         return Double(filtered) ?? 0
+    }
+
+    private func dismissKeyboard() {
+        focusedInput = nil
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
+
+    private enum CalculatorInput: Hashable {
+        case restaurantName
+        case billAmount
+        case customTip
     }
 }
 
