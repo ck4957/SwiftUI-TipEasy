@@ -1,16 +1,15 @@
-import Combine
 import SwiftData
 import SwiftUI
 
 enum TipInputMode {
-    case percentage, dollar
+    case percentage
+    case dollar
 }
 
-// MARK: - Design System Constants
 extension CGFloat {
     static let cornerRadiusSmall: CGFloat = 8
-    static let cornerRadiusMedium: CGFloat = 10
-    static let cornerRadiusLarge: CGFloat = 12
+    static let cornerRadiusMedium: CGFloat = 12
+    static let cornerRadiusLarge: CGFloat = 20
     static let minimumTouchTarget: CGFloat = 44
     static let spacingSmall: CGFloat = 8
     static let spacingMedium: CGFloat = 12
@@ -18,301 +17,487 @@ extension CGFloat {
 }
 
 struct TipCalculatorView: View {
-    // MARK: - Properties
-    
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.appPalette) private var palette
+    @AppStorage("pendingOpenScanner") private var pendingOpenScanner = false
+    @Query(sort: \TipPreset.percentage) private var tipPresets: [TipPreset]
+    @Query(sort: \TipTransaction.date, order: .reverse) private var transactions: [TipTransaction]
+
+    @State private var restaurantName: String = ""
     @State private var billAmount: String = ""
-    
-    // Remove separate tip amount and percentage fields.
-    // Use one custom tip field:
     @State private var customTipValue: String = ""
     @State private var tipInputMode: TipInputMode = .percentage
-    
-    @State private var selectedTipPercentage: Double = 0.15
-    @State private var tipPercentage: Double = 0.15
-    @State private var shouldClearCustomFields: Bool = true
-    @State private var isEditingCustomTip: Bool = false
-    @State private var tipWorkItem: DispatchWorkItem?
-    
-    // Instead of using AppStorage, we query the TipPreset model.
-    @Query(sort: \TipPreset.percentage) private var tipPresets: [TipPreset]
-    
-    // Default presets (if no models exist).
-    private let defaultPresets: [Double] = [0.10, 0.12, 0.15, 0.18, 0.20, 0.22, 0.25]
-    private let debounceInterval: TimeInterval = 0.8
-    
-    // MARK: - Computed Properties
+    @State private var selectedTipPercentage: Double = 0.18
+    @State private var showingScanner = false
+    @State private var showingSavedConfirmation = false
+    @State private var receiptScanResult: ReceiptScanResult?
+
+    private let defaultPresets: [Double] = [0.15, 0.18, 0.20, 0.25]
+    private let currencyCode = Locale.current.currency?.identifier ?? "USD"
 
     private var bill: Double {
-        Double(billAmount) ?? 0
+        parseAmount(billAmount)
     }
-    
-    // When in percentage mode, customTipValue is treated as percentage (e.g., 15 means 15%)
-    // When in dollar mode, customTipValue is treated as tip dollars.
+
     private var computedTipPercentage: Double {
-        if bill > 0, let entered = Double(customTipValue), !customTipValue.isEmpty {
-            switch tipInputMode {
-            case .percentage:
-                return entered / 100
-            case .dollar:
-                return entered / bill
-            }
+        guard bill > 0, let customValue = Double(customTipValue), !customTipValue.isEmpty else {
+            return selectedTipPercentage
         }
-        return tipPercentage
+
+        switch tipInputMode {
+        case .percentage:
+            return customValue / 100
+        case .dollar:
+            return customValue / bill
+        }
     }
-    
+
     private var computedTipAmount: Double {
         switch tipInputMode {
         case .percentage:
             return bill * computedTipPercentage
         case .dollar:
-            if let entered = Double(customTipValue) {
-                return entered
+            if let customValue = Double(customTipValue), !customTipValue.isEmpty {
+                return customValue
             }
-            return bill * tipPercentage
+            return bill * selectedTipPercentage
         }
     }
-    
+
     private var totalAmount: Double {
         bill + computedTipAmount
     }
-    
-    // Calculate preset percentages based on TipPreset models.
-    // If no presets exist in the model container, use defaultPresets.
+
     private var presetPercentageValues: [Double] {
-        if tipPresets.isEmpty {
-            return defaultPresets
-        } else {
-            return tipPresets.map { $0.percentage }
-        }
+        tipPresets.isEmpty ? defaultPresets : tipPresets.map(\.percentage)
     }
-    
-    // Create rows from the presetPercentageValues.
-    private var presetButtonRows: some View {
-        let presets = presetPercentageValues
-        let count = presets.count
-        let splitIndex = (count + 1) / 2
-        let firstRow = count < 4 ? Array(presets) : Array(presets.prefix(splitIndex))
-        let secondRow = count < 4 ? [] : Array(presets.suffix(from: splitIndex))
-        return VStack(spacing: 10) {
-            HStack(spacing: 10) {
-                ForEach(firstRow, id: \.self) { percentage in
-                    createPresetButton(for: percentage)
-                }
+
+    private var tipExplanation: TipInsight? {
+        TipIntelligenceService.explanation(
+            bill: bill,
+            tipPercentage: computedTipPercentage,
+            tipAmount: computedTipAmount,
+            scanResult: receiptScanResult
+        )
+    }
+
+    private var anomalyInsights: [TipInsight] {
+        TipIntelligenceService.anomalies(
+            bill: bill,
+            tipPercentage: computedTipPercentage,
+            restaurantName: restaurantName,
+            scanResult: receiptScanResult,
+            transactions: transactions
+        )
+    }
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: .spacingLarge) {
+                headerView
+                billCard
+                suggestionsCard
+                intelligenceCard
+                customTipCard
+                totalCard
+                actionsCard
             }
-            if !secondRow.isEmpty {
-                HStack(spacing: 10) {
-                    ForEach(secondRow, id: \.self) { percentage in
-                        createPresetButton(for: percentage)
-                    }
+            .padding(.horizontal)
+            .padding(.top, 12)
+            .padding(.bottom, 84)
+        }
+        .background(backgroundGradient)
+        .navigationTitle("Tip Easy")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    showingScanner = true
+                } label: {
+                    Image(systemName: "camera.viewfinder")
+                        .symbolRenderingMode(.hierarchical)
                 }
+                .glassEffect(.regular.interactive())
+                .accessibilityLabel("Scan receipt")
+            }
+        }
+        .tint(palette.accent)
+        .safeAreaInset(edge: .bottom) {
+            AdBannerView(adUnitID: "ca-app-pub-3911596373332918/3954995797")
+                .frame(height: 50)
+                .background(.bar)
+        }
+        .sheet(isPresented: $showingScanner) {
+            ReceiptScannerSheet { result in
+                if let total = result.total {
+                    billAmount = total.formatted(.number.precision(.fractionLength(2)))
+                }
+
+                if !result.merchantName.isEmpty {
+                    restaurantName = result.merchantName
+                }
+
+                receiptScanResult = result
+                showingScanner = false
+            }
+        }
+        .sensoryFeedback(.success, trigger: showingSavedConfirmation)
+        .alert("Saved to History", isPresented: $showingSavedConfirmation) {
+            Button("Done", role: .cancel) {}
+        } message: {
+            Text("This tip calculation is now stored locally on this device.")
+        }
+        .onAppear {
+            if pendingOpenScanner {
+                pendingOpenScanner = false
+                showingScanner = true
             }
         }
     }
-    
-    // MARK: - View Components
-    
-    private var billInputField: some View {
-        HStack(spacing: .spacingMedium) {
-            Image(systemName: "dollarsign.circle.fill")
-                .font(.title2)
-                .foregroundStyle(.secondary)
-                .symbolRenderingMode(.hierarchical)
-            TextField("Enter bill amount", text: $billAmount)
-                .keyboardType(.decimalPad)
-                .textFieldStyle(RoundedTextFieldStyle())
-        }
-    }
-    
-    private var tipPercentageSlider: some View {
-        VStack {
-            Slider(value: $selectedTipPercentage, in: 0 ... 0.50, step: 0.01)
-                .tint(.accentColor)
-                .onChange(of: selectedTipPercentage) { _, newValue in
-                    updateTipFromSlider(newValue)
-                }
-            Text("Tip Percentage: \(Int(selectedTipPercentage * 100))%")
+
+    private var headerView: some View {
+        VStack(alignment: .leading, spacing: .spacingSmall) {
+            Text("Settle the bill without the clutter.")
+                .font(.title2.weight(.semibold))
+            Text("Enter the total, compare common tip options, then save the visit when it matters.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
-    
-    // A single custom tip input field with a toggle to switch between percentage and dollar mode.
-    private var customTipInputField: some View {
-        VStack(alignment: .leading, spacing: .spacingSmall) {
-            HStack(spacing: .spacingSmall) {
-                TextField(tipInputMode == .percentage ?
-                    "Enter tip percentage" : "Enter tip amount", text: $customTipValue, onEditingChanged: handleCustomTipEditing)
+
+    private var billCard: some View {
+        VStack(alignment: .leading, spacing: .spacingMedium) {
+            Label("Bill", systemImage: "receipt")
+                .font(.headline)
+
+            TextField("Restaurant or place", text: $restaurantName)
+                .textInputAutocapitalization(.words)
+                .textFieldStyle(GlassTextFieldStyle(palette: palette))
+
+            HStack(spacing: .spacingMedium) {
+                Text(Locale.current.currencySymbol ?? "$")
+                    .font(.title2.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 28)
+
+                TextField("0.00", text: $billAmount)
                     .keyboardType(.decimalPad)
-                    .textFieldStyle(RoundedTextFieldStyle())
-            
-                Button(action: {
-                    tipInputMode = .percentage
-                }) {
-                    Image(systemName: "percent")
-                        .frame(minWidth: .minimumTouchTarget, minHeight: .minimumTouchTarget)
-                }
-                .buttonStyle(.bordered)
-                .tint(tipInputMode == .percentage ? .accentColor : .secondary)
-                .accessibilityLabel("Percentage mode")
-                
-                Button(action: {
-                    tipInputMode = .dollar
-                }) {
-                    Image(systemName: "dollarsign")
-                        .frame(minWidth: .minimumTouchTarget, minHeight: .minimumTouchTarget)
-                }
-                .buttonStyle(.bordered)
-                .tint(tipInputMode == .dollar ? .accentColor : .secondary)
-                .accessibilityLabel("Dollar mode")
+                    .font(.system(.largeTitle, design: .rounded).weight(.bold))
+                    .textFieldStyle(.plain)
+                    .submitLabel(.done)
+                    .accessibilityLabel("Bill amount")
+            }
+            .padding()
+            .frame(minHeight: 76)
+            .background(palette.field, in: RoundedRectangle(cornerRadius: .cornerRadiusLarge))
+        }
+        .glassCard(palette: palette)
+    }
+
+    private var intelligenceCard: some View {
+        VStack(alignment: .leading, spacing: .spacingMedium) {
+            Label("Smart Check", systemImage: "brain")
+                .font(.headline)
+
+            if let tipExplanation {
+                InsightRow(insight: tipExplanation)
+            }
+
+            ForEach(anomalyInsights) { insight in
+                InsightRow(insight: insight)
+            }
+
+            if tipExplanation == nil, anomalyInsights.isEmpty {
+                Text("Enter a bill or scan a receipt to see context, duplicate checks, and receipt warnings.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            if let receiptScanResult, receiptScanResult.usedAppleIntelligence {
+                Label("Receipt details refined with Apple Intelligence on device.", systemImage: "apple.intelligence")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
             }
         }
+        .glassCard(palette: palette, tint: anomalyInsights.isEmpty ? palette.card : palette.highlight.opacity(0.24))
     }
-    
-    private var summaryView: some View {
-        VStack(spacing: .spacingMedium) {
-            Text("Bill: $\(bill, specifier: "%.2f")")
-            Text("Tip: $\(computedTipAmount, specifier: "%.2f") (\(Int(computedTipPercentage * 100))%)")
-            Divider()
-            HStack(alignment: .center) {
-                Text("Total: $\(totalAmount, specifier: "%.2f")")
-                    .font(.title2)
-                    .fontWeight(.semibold)
+
+    private var suggestionsCard: some View {
+        VStack(alignment: .leading, spacing: .spacingMedium) {
+            HStack {
+                Label("Tip Suggestions", systemImage: "sparkles")
+                    .font(.headline)
+                Spacer()
+                Text("\(Int(computedTipPercentage * 100))% selected")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
+
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 144), spacing: 10)], spacing: 10) {
+                ForEach(presetPercentageValues, id: \.self) { percentage in
+                    Button {
+                        selectPreset(percentage)
+                    } label: {
+                        TipSuggestionTile(
+                            percentage: percentage,
+                            bill: bill,
+                            currencyCode: currencyCode,
+                            isSelected: abs(percentage - computedTipPercentage) < 0.001
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
             }
         }
-        .font(.body)
-        .fontWeight(.medium)
-        .padding()
-        .background(.regularMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: .cornerRadiusLarge))
-        .animation(.default, value: totalAmount)
+        .glassCard(palette: palette)
     }
-    
-    // MARK: - Body
-    
-    var body: some View {
-        VStack(spacing: .spacingLarge) {
-            Text("Tip Easy")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .fontDesign(.rounded)
-            billInputField
-            tipPercentageSlider
-            presetButtonRows
-            customTipInputField
-            summaryView
-            Spacer()
-            AdBannerView(adUnitID: "ca-app-pub-3911596373332918/3954995797")
-                .frame(height: 50)
+
+    private var customTipCard: some View {
+        VStack(alignment: .leading, spacing: .spacingMedium) {
+            Label("Custom Tip", systemImage: "slider.horizontal.below.rectangle")
+                .font(.headline)
+
+            Picker("Tip input mode", selection: $tipInputMode) {
+                Label("Percent", systemImage: "percent").tag(TipInputMode.percentage)
+                Label("Amount", systemImage: "dollarsign").tag(TipInputMode.dollar)
+            }
+            .pickerStyle(.segmented)
+
+            TextField(tipInputMode == .percentage ? "Custom percentage" : "Custom tip amount", text: $customTipValue)
+                .keyboardType(.decimalPad)
+                .textFieldStyle(GlassTextFieldStyle(palette: palette))
+                .onChange(of: customTipValue) { _, newValue in
+                    if !newValue.isEmpty {
+                        synchronizeCustomTip()
+                    }
+                }
         }
-        .padding()
+        .glassCard(palette: palette)
     }
-    
-    // MARK: - Helper Methods
-    
-    private func createPresetButton(for percentage: Double) -> some View {
-        Button(action: {
-            shouldClearCustomFields = true
-            updateTipFromPreset(percentage)
-        }) {
-            Text("\(Int(percentage * 100))%")
-                .padding()
-                .frame(minWidth: .minimumTouchTarget, minHeight: .minimumTouchTarget)
-                .background((abs(percentage - tipPercentage) < 0.001)
-                    ? Color.accentColor
-                    : Color.accentColor.opacity(0.8))
-                .foregroundStyle(.white)
-                .clipShape(RoundedRectangle(cornerRadius: .cornerRadiusMedium))
+
+    private var totalCard: some View {
+        VStack(alignment: .leading, spacing: .spacingMedium) {
+            Label("Today", systemImage: "checkmark.circle")
+                .font(.headline)
+
+            HStack {
+                AmountColumn(title: "Tip", amount: computedTipAmount, currencyCode: currencyCode)
+                Divider()
+                AmountColumn(title: "Total", amount: totalAmount, currencyCode: currencyCode, isPrimary: true)
+            }
+            .frame(minHeight: 88)
+
+            HStack {
+                Text("Bill")
+                Spacer()
+                Text(bill, format: .currency(code: currencyCode))
+            }
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
         }
-        .buttonStyle(.plain)
+        .glassCard(palette: palette, tint: palette.secondaryAccent.opacity(0.22))
+        .animation(.snappy, value: totalAmount)
     }
-    
-    private func updateTipFromSlider(_ newValue: Double) {
-        withAnimation {
-            tipPercentage = newValue
-            selectedTipPercentage = newValue
-            if shouldClearCustomFields { clearCustomTipField() }
-            cancelTipWorkItem()
+
+    private var actionsCard: some View {
+        HStack(spacing: .spacingMedium) {
+            Button {
+                resetCalculator()
+            } label: {
+                Label("Clear", systemImage: "xmark.circle")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.glass)
+
+            Button {
+                saveTransaction()
+            } label: {
+                Label("Save", systemImage: "tray.and.arrow.down")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.glassProminent)
+            .disabled(bill <= 0)
         }
     }
-    
-    private func updateTipFromPreset(_ percentage: Double) {
-        // Provide haptic feedback
+
+    private var backgroundGradient: some View {
+        LinearGradient(
+            colors: [
+                palette.backgroundTop,
+                palette.backgroundMid,
+                palette.backgroundBottom
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+        .ignoresSafeArea()
+    }
+
+    private func selectPreset(_ percentage: Double) {
         let impact = UIImpactFeedbackGenerator(style: .light)
         impact.impactOccurred()
-        
-        withAnimation {
-            tipPercentage = percentage
+
+        withAnimation(.snappy) {
             selectedTipPercentage = percentage
-            if shouldClearCustomFields { clearCustomTipField() }
-            cancelTipWorkItem()
+            customTipValue = ""
+            tipInputMode = .percentage
         }
     }
-    
-    private func clearCustomTipField() {
-        customTipValue = ""
-    }
-    
-    private func cancelTipWorkItem() {
-        tipWorkItem?.cancel()
-    }
-    
-    private func debouncedCustomTipUpdate(oldValue: String, newValue: String) {
-        cancelTipWorkItem()
-        let workItem = DispatchWorkItem {
-            updateCustomTip()
-        }
-        tipWorkItem = workItem
-        DispatchQueue.main.asyncAfter(deadline: .now() + debounceInterval, execute: workItem)
-    }
-    
-    private func handleCustomTipEditing(_ editing: Bool) {
-        isEditingCustomTip = editing
-        if !editing {
-            updateCustomTip()
+
+    private func synchronizeCustomTip() {
+        guard bill > 0 else { return }
+        switch tipInputMode {
+        case .percentage:
+            selectedTipPercentage = (Double(customTipValue) ?? 0) / 100
+        case .dollar:
+            selectedTipPercentage = (Double(customTipValue) ?? 0) / bill
         }
     }
-    
-    private func updateCustomTip() {
-        guard !customTipValue.trimmingCharacters(in: .whitespaces).isEmpty, bill > 0 else { return }
-        withAnimation {
-            if tipInputMode == .percentage {
-                let entered = Double(customTipValue) ?? 0
-                tipPercentage = entered / 100
-            } else {
-                let entered = Double(customTipValue) ?? 0
-                tipPercentage = entered / bill
-            }
-            selectedTipPercentage = tipPercentage
-            shouldClearCustomFields = false
+
+    private func saveTransaction() {
+        guard bill > 0 else { return }
+
+        let transaction = TipTransaction(
+            restaurantName: restaurantName.trimmingCharacters(in: .whitespacesAndNewlines),
+            billAmount: bill,
+            tipPercentage: computedTipPercentage,
+            tipAmount: computedTipAmount,
+            totalAmount: totalAmount
+        )
+        modelContext.insert(transaction)
+        showingSavedConfirmation = true
+    }
+
+    private func resetCalculator() {
+        withAnimation(.snappy) {
+            restaurantName = ""
+            billAmount = ""
+            customTipValue = ""
+            tipInputMode = .percentage
+            selectedTipPercentage = presetPercentageValues.first ?? 0.18
+            receiptScanResult = nil
         }
+    }
+
+    private func parseAmount(_ text: String) -> Double {
+        let allowed = CharacterSet(charactersIn: "0123456789.")
+        let filtered = String(text.unicodeScalars.filter { allowed.contains($0) })
+        return Double(filtered) ?? 0
     }
 }
 
-// MARK: - Custom Styles
+private struct InsightRow: View {
+    @Environment(\.appPalette) private var palette
+    let insight: TipInsight
 
-struct RoundedTextFieldStyle: TextFieldStyle {
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: insight.kind == .warning ? "exclamationmark.triangle.fill" : "info.circle.fill")
+                .foregroundStyle(insight.kind == .warning ? palette.highlight : palette.secondaryAccent)
+                .padding(.top, 2)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(insight.title)
+                    .font(.subheadline.weight(.semibold))
+                Text(insight.message)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+private struct TipSuggestionTile: View {
+    @Environment(\.appPalette) private var palette
+
+    let percentage: Double
+    let bill: Double
+    let currencyCode: String
+    let isSelected: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("\(Int(percentage * 100))%")
+                    .font(.title3.weight(.bold))
+                Spacer()
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .foregroundStyle(isSelected ? palette.accent : palette.secondaryAccent.opacity(0.72))
+            }
+
+            Text(bill * percentage, format: .currency(code: currencyCode))
+                .font(.headline)
+                .contentTransition(.numericText())
+
+            Text("Total \((bill + bill * percentage).formatted(.currency(code: currencyCode)))")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, minHeight: 116, alignment: .leading)
+        .background(isSelected ? palette.selectedTile : palette.tile, in: RoundedRectangle(cornerRadius: 16))
+        .overlay {
+            RoundedRectangle(cornerRadius: 16)
+                .strokeBorder(isSelected ? palette.accent.opacity(0.50) : palette.highlight.opacity(0.20), lineWidth: 1)
+        }
+        .glassEffect(isSelected ? .regular.tint(palette.accent.opacity(0.14)).interactive() : .regular.tint(palette.glassTint).interactive(), in: .rect(cornerRadius: 16))
+    }
+}
+
+private struct AmountColumn: View {
+    let title: String
+    let amount: Double
+    let currencyCode: String
+    var isPrimary = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+            Text(amount, format: .currency(code: currencyCode))
+                .font(isPrimary ? .title.weight(.bold) : .title2.weight(.semibold))
+                .fontDesign(.rounded)
+                .contentTransition(.numericText())
+                .lineLimit(1)
+                .minimumScaleFactor(0.72)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+struct GlassTextFieldStyle: TextFieldStyle {
+    let palette: ThemePalette
+
     func _body(configuration: TextField<Self._Label>) -> some View {
         configuration
-            .keyboardType(.decimalPad)
-            .submitLabel(.done)
             .padding()
             .frame(minHeight: .minimumTouchTarget)
-            .background(.regularMaterial)
-            .clipShape(RoundedRectangle(cornerRadius: .cornerRadiusMedium))
-            .overlay(
+            .background(palette.field, in: RoundedRectangle(cornerRadius: .cornerRadiusMedium))
+            .overlay {
                 RoundedRectangle(cornerRadius: .cornerRadiusMedium)
-                    .strokeBorder(Color.secondary.opacity(0.2), lineWidth: 1)
-            )
+                    .strokeBorder(palette.stroke, lineWidth: 1)
+            }
     }
 }
 
-struct TipCalculatorView_Previews: PreviewProvider {
-    static var previews: some View {
-        Group {
-            TipCalculatorView()
-                .preferredColorScheme(.light)
-            TipCalculatorView()
-                .preferredColorScheme(.dark)
-        }
+private extension View {
+    func glassCard(palette: ThemePalette, tint: Color? = nil) -> some View {
+        self
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(tint ?? palette.card, in: RoundedRectangle(cornerRadius: .cornerRadiusLarge))
+            .glassEffect(.regular.tint(palette.glassTint), in: .rect(cornerRadius: .cornerRadiusLarge))
     }
+}
+
+#Preview {
+    NavigationStack {
+        TipCalculatorView()
+    }
+    .modelContainer(for: [TipPreset.self, TipTransaction.self], inMemory: true)
 }

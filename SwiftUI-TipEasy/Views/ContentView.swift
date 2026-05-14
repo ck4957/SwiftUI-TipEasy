@@ -3,23 +3,98 @@ import GoogleMobileAds
 import SwiftUI
 
 struct ContentView: View {
+    @Environment(\.scenePhase) private var scenePhase
+    @AppStorage("selectedAppTheme") private var selectedThemeRawValue = AppTheme.harvest.rawValue
+    @AppStorage("appAppearance") private var appAppearanceRawValue = AppAppearance.system.rawValue
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    @State private var selectedTab: AppTab = .calculator
+
+    private var selectedTheme: AppTheme {
+        AppTheme(rawValue: selectedThemeRawValue) ?? .harvest
+    }
+
+    private var appAppearance: AppAppearance {
+        AppAppearance(rawValue: appAppearanceRawValue) ?? .system
+    }
+
     var body: some View {
-        NavigationStack {
-            TipCalculatorView()
-                .toolbar {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        NavigationLink {
-                            TipPresetSettingsView()
-                        } label: {
-                            Image(systemName: "gearshape.fill")
-                                .symbolRenderingMode(.hierarchical)
-                        }
-                        .glassEffect(.regular.interactive())
-                    }
-                }
-                .toolbarBackground(.visible, for: .navigationBar)
+        TabView(selection: $selectedTab) {
+            NavigationStack {
+                TipCalculatorView()
+            }
+            .tabItem {
+                Label("Calculator", systemImage: "percent")
+            }
+            .tag(AppTab.calculator)
+
+            NavigationStack {
+                TipHistoryView()
+            }
+            .tabItem {
+                Label("History", systemImage: "clock.arrow.circlepath")
+            }
+            .tag(AppTab.history)
+
+            NavigationStack {
+                TipPresetSettingsView()
+            }
+            .tabItem {
+                Label("Settings", systemImage: "slider.horizontal.3")
+            }
+            .tag(AppTab.settings)
+        }
+        .environment(\.appTheme, selectedTheme)
+        .preferredColorScheme(appAppearance.colorScheme)
+        .tint(selectedTheme.palette.accent)
+        .fullScreenCover(isPresented: onboardingPresentation) {
+            OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
+                .environment(\.appTheme, selectedTheme)
+                .preferredColorScheme(appAppearance.colorScheme)
+        }
+        .onAppear {
+            routePendingDestination()
+        }
+        .onChange(of: scenePhase) { _, newValue in
+            if newValue == .active {
+                routePendingDestination()
+            }
         }
     }
+
+    private var onboardingPresentation: Binding<Bool> {
+        Binding {
+            !hasCompletedOnboarding
+        } set: { isPresented in
+            if !isPresented {
+                hasCompletedOnboarding = true
+            }
+        }
+    }
+
+    private func routePendingDestination() {
+        guard let rawValue = UserDefaults.standard.string(forKey: "pendingTipEasyDestination"),
+              let destination = TipEasyDestination(rawValue: rawValue)
+        else {
+            return
+        }
+
+        switch destination {
+        case .calculator, .scanner:
+            selectedTab = .calculator
+        case .history:
+            selectedTab = .history
+        case .settings:
+            selectedTab = .settings
+        }
+
+        UserDefaults.standard.removeObject(forKey: "pendingTipEasyDestination")
+    }
+}
+
+private enum AppTab: Hashable {
+    case calculator
+    case history
+    case settings
 }
 
 #Preview {
