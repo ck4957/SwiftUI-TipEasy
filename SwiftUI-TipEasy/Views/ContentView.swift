@@ -110,7 +110,7 @@ struct AdBannerView: UIViewRepresentable {
         bannerView.adUnitID = adUnitID
 
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let rootViewController = windowScene.windows.first?.rootViewController
+           let rootViewController = windowScene.keyWindow?.rootViewController
         {
             bannerView.rootViewController = rootViewController
         }
