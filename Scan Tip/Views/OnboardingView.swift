@@ -10,7 +10,7 @@ struct OnboardingView: View {
     var body: some View {
         VStack(spacing: .spacingLarge) {
             HStack {
-                Text("Tip Easy")
+                Text("Scan Tip")
                     .font(.headline)
                 Spacer()
                 Button("Skip") {

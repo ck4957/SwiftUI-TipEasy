@@ -129,7 +129,7 @@ enum TipIntelligenceService {
 
         return HistorySummary(
             title: title,
-            message: "Tip Easy summarized your local saved dining activity.",
+            message: "Scan Tip summarized your local saved dining activity.",
             highlights: highlights
         )
     }

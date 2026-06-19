@@ -4,7 +4,7 @@ Status: NEEDS_INPUT
 
 ## Reviewer Walkthrough
 
-1. Launch Tip Easy.
+1. Launch Scan Tip.
 2. Complete or skip onboarding.
 3. On the Calculator tab, enter a restaurant name and bill amount.
 4. Select a preset tip or enter a custom percentage/dollar tip.
@@ -21,7 +21,7 @@ No login is required. No reviewer account is needed.
 
 ## Permissions Explanation
 
-- Camera: used to scan receipt text, detect receipt totals, and identify possible service charges or included gratuity. The app's permission string is: "Tip Easy uses the camera to read receipt totals and show tip suggestions."
+- Camera: used to scan receipt text, detect receipt totals, and identify possible service charges or included gratuity. The app's permission string is: "Scan Tip uses the camera to read receipt totals and show tip suggestions."
 - Local storage: SwiftData stores custom tip presets and saved tip transactions on device.
 - Local data deletion: Settings includes a Privacy & Data section where users can delete saved tip history, custom presets, onboarding status, and pending shortcut state from the device.
 - Ads: Google Mobile Ads SDK is included. Final App Store privacy and tracking answers require confirmation.
@@ -38,7 +38,7 @@ The receipt parser first uses deterministic local text parsing. On iOS 26+ devic
 
 ## Unusual Entitlements Or Flows
 
-- App Intents expose shortcuts for calculating tips, saving tips, and opening Tip Easy destinations.
+- App Intents expose shortcuts for calculating tips, saving tips, and opening Scan Tip destinations.
 - Google Mobile Ads is initialized at launch and an ad banner is shown in the app shell.
 - SKAdNetwork identifiers are configured in `Info.plist`.
 

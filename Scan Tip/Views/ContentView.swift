@@ -78,8 +78,8 @@ struct ContentView: View {
     }
 
     private func routePendingDestination() {
-        guard let rawValue = UserDefaults.standard.string(forKey: "pendingTipEasyDestination"),
-              let destination = TipEasyDestination(rawValue: rawValue)
+        guard let rawValue = UserDefaults.standard.string(forKey: "pendingScanTipDestination"),
+              let destination = ScanTipDestination(rawValue: rawValue)
         else {
             return
         }
@@ -93,7 +93,7 @@ struct ContentView: View {
             selectedTab = .settings
         }
 
-        UserDefaults.standard.removeObject(forKey: "pendingTipEasyDestination")
+        UserDefaults.standard.removeObject(forKey: "pendingScanTipDestination")
     }
 }
 

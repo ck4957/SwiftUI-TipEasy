@@ -95,7 +95,7 @@ struct ReceiptScannerSheet: View {
                 }
             }
 
-            Text(isAnalyzing ? "Reading receipt details..." : scanResult.usedAppleIntelligence ? "Apple Intelligence refined the receipt details on device." : "Point the camera at the receipt total. Tip Easy also looks for service charges and merchant names.")
+            Text(isAnalyzing ? "Reading receipt details..." : scanResult.usedAppleIntelligence ? "Apple Intelligence refined the receipt details on device." : "Point the camera at the receipt total. Scan Tip also looks for service charges and merchant names.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

@@ -4,7 +4,7 @@ Status: NEEDS_INPUT
 
 ## Beta App Description
 
-Tip Easy is a SwiftUI tip calculator for restaurant bills. Testers can enter a bill amount, choose preset or custom tip values, scan receipts with the camera, save tip history locally, and manage custom tip presets.
+Scan Tip is a SwiftUI tip calculator for restaurant bills. Testers can enter a bill amount, choose preset or custom tip values, scan receipts with the camera, save tip history locally, and manage custom tip presets.
 
 ## Test Focus Areas
 
@@ -18,7 +18,7 @@ Tip Easy is a SwiftUI tip calculator for restaurant bills. Testers can enter a b
 - Change theme and appearance settings.
 - Open the receipt scanner on a supported device and verify detected receipt totals.
 - Verify service charge or included gratuity warnings when receipt text supports it.
-- Test App Shortcuts for calculating, saving, and opening Tip Easy destinations.
+- Test App Shortcuts for calculating, saving, and opening Scan Tip destinations.
 - Confirm the ad banner does not block calculator, history, or settings flows.
 
 ## Known Issues
@@ -39,7 +39,7 @@ Please focus on normal restaurant tipping flows: calculating a bill, scanning a 
 
 ## Build Notes
 
-- Bundle ID: com.chiragkular.SwiftUI-TipEasy
+- Bundle ID: com.chiragkular.ScanTip
 - Version: 1.2
 - Build: 2
 - Minimum OS: iOS 26.0

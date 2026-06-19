@@ -2,7 +2,7 @@
 
 ## App Shell
 
-The root app type is `TipEasyApp` in `SwiftUI_TipEasyApp.swift`.
+The root app type is `ScanTipApp` in `SwiftUI_ScanTipApp.swift`.
 
 Launch responsibilities:
 
@@ -22,13 +22,13 @@ Primary responsibilities:
 - Stores selected tab state.
 - Reads and applies theme and appearance preferences from `AppStorage`.
 - Presents onboarding as a full-screen cover until completed.
-- Routes App Intent destinations by reading `pendingTipEasyDestination` from `UserDefaults`.
+- Routes App Intent destinations by reading `pendingScanTipDestination` from `UserDefaults`.
 - Sets `pendingOpenScanner` when the scanner shortcut is requested.
 
 Tab structure:
 
 ```text
-TipEasyApp
+ScanTipApp
 └── ContentView
     ├── Calculator tab
     │   └── NavigationStack
@@ -52,7 +52,7 @@ Structure:
 ```text
 OnboardingView
 ├── Header
-│   ├── Tip Easy title
+│   ├── Scan Tip title
 │   └── Skip button
 ├── Page TabView
 │   └── OnboardingPageView
@@ -231,20 +231,20 @@ Child views then use `@Environment(\.appPalette)` for consistent colors.
 
 ## App Intent Routing
 
-`OpenTipEasyIntent` writes the requested destination to `UserDefaults` and opens the app.
+`OpenScanTipIntent` writes the requested destination to `UserDefaults` and opens the app.
 
 Routing flow:
 
 ```text
-OpenTipEasyIntent
-├── writes pendingTipEasyDestination
+OpenScanTipIntent
+├── writes pendingScanTipDestination
 ├── writes pendingOpenScanner when destination is scanner
 └── opens app
 
 ContentView
 └── routePendingDestination()
     ├── switches selected tab
-    └── clears pendingTipEasyDestination
+    └── clears pendingScanTipDestination
 
 TipCalculatorView
 └── onAppear

@@ -3,11 +3,11 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleDisplayName</key>
-	<string>Tip Easy</string>
+	<string>Scan Tip</string>
 	<key>GADApplicationIdentifier</key>
 	<string>ca-app-pub-3911596373332918~1081182764</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Tip Easy uses the camera to read receipt totals and show tip suggestions.</string>
+	<string>Scan Tip uses the camera to read receipt totals and show tip suggestions.</string>
     <key>SKAdNetworkItems</key>
     <array>
       <dict>

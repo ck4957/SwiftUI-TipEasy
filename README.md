@@ -1,10 +1,10 @@
-# SwiftUI TipEasy
+# Scan Tip
 
-TipEasy is a SwiftUI-based tip calculator app that simplifies calculating tips. It offers a user-friendly interface with a slider, preset buttons, and a custom input field, all while persisting custom settings.
+Scan Tip is a SwiftUI-based tip calculator app that simplifies calculating tips. It offers a user-friendly interface with a slider, preset buttons, and a custom input field, all while persisting custom settings.
 
 ## Project Structure
 
-- **SwiftUI-TipEasyApp.swift**: Entry point of the application, setting up the main app structure and initializing the ContentView. Also sets up the SwiftData ModelContainer.
+- **SwiftUI_ScanTipApp.swift**: Entry point of the application, setting up the main app structure and initializing the ContentView. Also sets up the SwiftData ModelContainer.
 - **Views/**:
   - **ContentView.swift**: Main view of the application, embedding the TipCalculatorView and managing navigation to the settings.
   - **TipCalculatorView.swift**: Contains the UI elements for the tip calculator, including a slider, preset buttons (dynamically loaded from settings), and a single text field for custom tip input (percentage or amount). Handles UI updates and animations.

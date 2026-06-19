@@ -11,26 +11,26 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		2BC8BDE72D5831C700197BC4 /* SwiftUI-TipEasy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "SwiftUI-TipEasy.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2BC8BDE72D5831C700197BC4 /* Scan Tip.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Scan Tip.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		2B37C2D32D9E0673000D259B /* Exceptions for "SwiftUI-TipEasy" folder in "SwiftUI-TipEasy" target */ = {
+		2B37C2D32D9E0673000D259B /* Exceptions for "Scan Tip" folder in "Scan Tip" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = 2BC8BDE62D5831C700197BC4 /* SwiftUI-TipEasy */;
+			target = 2BC8BDE62D5831C700197BC4 /* Scan Tip */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		2BC8BDE92D5831C700197BC4 /* SwiftUI-TipEasy */ = {
+		2BC8BDE92D5831C700197BC4 /* Scan Tip */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				2B37C2D32D9E0673000D259B /* Exceptions for "SwiftUI-TipEasy" folder in "SwiftUI-TipEasy" target */,
+				2B37C2D32D9E0673000D259B /* Exceptions for "Scan Tip" folder in "Scan Tip" target */,
 			);
-			path = "SwiftUI-TipEasy";
+			path = "Scan Tip";
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -50,7 +50,7 @@
 		2BC8BDDE2D5831C700197BC4 = {
 			isa = PBXGroup;
 			children = (
-				2BC8BDE92D5831C700197BC4 /* SwiftUI-TipEasy */,
+				2BC8BDE92D5831C700197BC4 /* Scan Tip */,
 				2BC8BDE82D5831C700197BC4 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -58,7 +58,7 @@
 		2BC8BDE82D5831C700197BC4 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				2BC8BDE72D5831C700197BC4 /* SwiftUI-TipEasy.app */,
+				2BC8BDE72D5831C700197BC4 /* Scan Tip.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -66,9 +66,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		2BC8BDE62D5831C700197BC4 /* SwiftUI-TipEasy */ = {
+		2BC8BDE62D5831C700197BC4 /* Scan Tip */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2BC8BDF52D5831C800197BC4 /* Build configuration list for PBXNativeTarget "SwiftUI-TipEasy" */;
+			buildConfigurationList = 2BC8BDF52D5831C800197BC4 /* Build configuration list for PBXNativeTarget "Scan Tip" */;
 			buildPhases = (
 				2BC8BDE32D5831C700197BC4 /* Sources */,
 				2BC8BDE42D5831C700197BC4 /* Frameworks */,
@@ -79,14 +79,14 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				2BC8BDE92D5831C700197BC4 /* SwiftUI-TipEasy */,
+				2BC8BDE92D5831C700197BC4 /* Scan Tip */,
 			);
-			name = "SwiftUI-TipEasy";
+			name = "Scan Tip";
 			packageProductDependencies = (
 				2B37C2D02D9E0659000D259B /* GoogleMobileAds */,
 			);
-			productName = "SwiftUI-TipEasy";
-			productReference = 2BC8BDE72D5831C700197BC4 /* SwiftUI-TipEasy.app */;
+			productName = "Scan Tip";
+			productReference = 2BC8BDE72D5831C700197BC4 /* Scan Tip.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -104,7 +104,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 2BC8BDE22D5831C700197BC4 /* Build configuration list for PBXProject "SwiftUI-TipEasy" */;
+			buildConfigurationList = 2BC8BDE22D5831C700197BC4 /* Build configuration list for PBXProject "Scan Tip" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -121,7 +121,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				2BC8BDE62D5831C700197BC4 /* SwiftUI-TipEasy */,
+				2BC8BDE62D5831C700197BC4 /* Scan Tip */,
 			);
 		};
 /* End PBXProject section */
@@ -277,10 +277,10 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 2;
-				DEVELOPMENT_ASSET_PATHS = "\"SwiftUI-TipEasy/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"Scan Tip/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "SwiftUI-TipEasy/Info.plist";
+				INFOPLIST_FILE = "Scan Tip/Info.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.food-and-drink";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -293,7 +293,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.2;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.chiragkular.SwiftUI-TipEasy";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.chiragkular.ScanTip";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -308,10 +308,10 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 2;
-				DEVELOPMENT_ASSET_PATHS = "\"SwiftUI-TipEasy/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"Scan Tip/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "SwiftUI-TipEasy/Info.plist";
+				INFOPLIST_FILE = "Scan Tip/Info.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.food-and-drink";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -324,7 +324,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.2;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.chiragkular.SwiftUI-TipEasy";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.chiragkular.ScanTip";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -335,7 +335,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		2BC8BDE22D5831C700197BC4 /* Build configuration list for PBXProject "SwiftUI-TipEasy" */ = {
+		2BC8BDE22D5831C700197BC4 /* Build configuration list for PBXProject "Scan Tip" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2BC8BDF32D5831C800197BC4 /* Debug */,
@@ -344,7 +344,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2BC8BDF52D5831C800197BC4 /* Build configuration list for PBXNativeTarget "SwiftUI-TipEasy" */ = {
+		2BC8BDF52D5831C800197BC4 /* Build configuration list for PBXNativeTarget "Scan Tip" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2BC8BDF62D5831C800197BC4 /* Debug */,

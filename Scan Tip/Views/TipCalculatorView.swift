@@ -108,7 +108,7 @@ struct TipCalculatorView: View {
         }
         .scrollDismissesKeyboard(.interactively)
         .background(backgroundGradient)
-        .navigationTitle("Tip Easy")
+        .navigationTitle("Scan Tip")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {

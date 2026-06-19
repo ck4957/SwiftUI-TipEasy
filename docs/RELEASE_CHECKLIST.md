@@ -4,7 +4,7 @@ Status: NEEDS_INPUT
 
 ## Build And Project
 
-- [x] Bundle identifier documented: `com.chiragkular.SwiftUI-TipEasy`
+- [x] Bundle identifier documented: `com.chiragkular.ScanTip`
 - [x] Version documented: `1.2`
 - [x] Build number documented: `2`
 - [x] Target device families documented: iPhone and iPad
@@ -44,8 +44,8 @@ Status: NEEDS_INPUT
 
 - [x] Existing iPhone screenshots inventoried
 - [x] Existing iPad screenshots inventoried
-- [ ] Final iPhone screenshot set captured at accepted App Store dimensions
-- [ ] Final iPad screenshot set captured at accepted App Store dimensions
+- [x] Final iPhone screenshot set captured at accepted App Store dimensions
+- [x] Final iPad screenshot set captured at accepted App Store dimensions
 - [ ] Screenshot captions/copy approved
 - [ ] Ad banner screenshot treatment confirmed
 

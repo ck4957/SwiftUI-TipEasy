@@ -132,7 +132,7 @@ struct TipPresetSettingsView: View {
         VStack(alignment: .leading, spacing: .spacingSmall) {
             Label("Tip Suggestions", systemImage: "slider.horizontal.3")
                 .font(.headline)
-            Text("Customize the percentages shown on the calculator. If no custom presets exist, Tip Easy uses 15%, 18%, 20%, and 25%.")
+            Text("Customize the percentages shown on the calculator. If no custom presets exist, Scan Tip uses 15%, 18%, 20%, and 25%.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
@@ -251,8 +251,8 @@ struct TipPresetSettingsView: View {
             [
                 "hasCompletedOnboarding",
                 "pendingOpenScanner",
-                "pendingTipEasyDestination",
-                "pendingTipEasyTransactionID"
+                "pendingScanTipDestination",
+                "pendingScanTipTransactionID"
             ].forEach(defaults.removeObject(forKey:))
 
             hasCompletedOnboarding = false

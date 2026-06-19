@@ -2,9 +2,9 @@
 
 ## Overview
 
-Tip Easy is a SwiftUI app backed by SwiftData for local persistence. The persistent domain is intentionally small: saved tip presets and saved tip transactions. Receipt scanning and calculator state are treated as transient view state unless a user explicitly saves a transaction.
+Scan Tip is a SwiftUI app backed by SwiftData for local persistence. The persistent domain is intentionally small: saved tip presets and saved tip transactions. Receipt scanning and calculator state are treated as transient view state unless a user explicitly saves a transaction.
 
-The SwiftData container is configured in `SwiftUI_TipEasyApp.swift` for:
+The SwiftData container is configured in `SwiftUI_ScanTipApp.swift` for:
 
 - `TipPreset`
 - `TipTransaction`
@@ -138,13 +138,13 @@ Flow:
 
 ## App Intent Data Access
 
-`TipEasyIntents.swift` exposes shortcuts for calculator-related work:
+`ScanTipIntents.swift` exposes shortcuts for calculator-related work:
 
 - `CalculateTipIntent` calculates a tip and total without opening the app.
 - `SaveTipIntent` creates its own SwiftData `ModelContainer`, inserts a `TipTransaction`, and saves it.
-- `OpenTipEasyIntent` writes pending navigation state to `UserDefaults` so `ContentView` can route when the app opens.
+- `OpenScanTipIntent` writes pending navigation state to `UserDefaults` so `ContentView` can route when the app opens.
 
-Shared destination values are modeled by `TipEasyDestination`, with cases for calculator, scanner, history, and settings.
+Shared destination values are modeled by `ScanTipDestination`, with cases for calculator, scanner, history, and settings.
 
 ## Storage Boundaries
 

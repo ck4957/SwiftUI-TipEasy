@@ -1,6 +1,6 @@
 //
-//  SwiftUI_TipEasyApp.swift
-//  SwiftUI-TipEasy
+//  SwiftUI_ScanTipApp.swift
+//  Scan Tip
 //
 //  Created by Chirag Kular on 2/8/25.
 //
@@ -20,7 +20,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 }
 
 @main
-struct TipEasyApp: App {
+struct ScanTipApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     var body: some Scene {

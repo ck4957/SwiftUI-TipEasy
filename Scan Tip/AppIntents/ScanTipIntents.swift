@@ -2,15 +2,15 @@ import AppIntents
 import Foundation
 import SwiftData
 
-enum TipEasyDestination: String, AppEnum {
+enum ScanTipDestination: String, AppEnum {
     case calculator
     case scanner
     case history
     case settings
 
-    static var typeDisplayRepresentation = TypeDisplayRepresentation(name: "Tip Easy Destination")
+    static var typeDisplayRepresentation = TypeDisplayRepresentation(name: "Scan Tip Destination")
 
-    static var caseDisplayRepresentations: [TipEasyDestination: DisplayRepresentation] = [
+    static var caseDisplayRepresentations: [ScanTipDestination: DisplayRepresentation] = [
         .calculator: "Calculator",
         .scanner: "Receipt Scanner",
         .history: "History",
@@ -120,7 +120,7 @@ struct TipCalculationRequestQuery: EntityStringQuery {
 
 struct CalculateTipIntent: AppIntent {
     static var title: LocalizedStringResource = "Calculate Tip"
-    static var description = IntentDescription("Calculate a tip and total without opening Tip Easy.")
+    static var description = IntentDescription("Calculate a tip and total without opening Scan Tip.")
     static var parameterSummary: some ParameterSummary {
         Summary("Calculate a \(\.$tipPercent) percent tip for \(\.$billAmount)")
     }
@@ -180,7 +180,7 @@ struct CalculateTipFromTextIntent: AppIntent {
 
 struct SaveTipIntent: AppIntent {
     static var title: LocalizedStringResource = "Save Tip"
-    static var description = IntentDescription("Save a tip calculation to Tip Easy history.")
+    static var description = IntentDescription("Save a tip calculation to Scan Tip history.")
 
     @Parameter(title: "Bill Amount")
     var billAmount: Double
@@ -213,13 +213,13 @@ struct SaveTipIntent: AppIntent {
         context.insert(transaction)
         try context.save()
 
-        return .result(value: TipTransactionEntity(transaction: transaction), dialog: "Saved to Tip Easy history.")
+        return .result(value: TipTransactionEntity(transaction: transaction), dialog: "Saved to Scan Tip history.")
     }
 }
 
 struct OpenSavedTipIntent: OpenIntent {
     static var title: LocalizedStringResource = "Open Saved Tip"
-    static var description = IntentDescription("Open Tip Easy history for a saved tip.")
+    static var description = IntentDescription("Open Scan Tip history for a saved tip.")
     static var openAppWhenRun = true
 
     @Parameter
@@ -234,36 +234,36 @@ struct OpenSavedTipIntent: OpenIntent {
     }
 
     func perform() async throws -> some IntentResult {
-        UserDefaults.standard.set(TipEasyDestination.history.rawValue, forKey: "pendingTipEasyDestination")
-        UserDefaults.standard.set(target.id.uuidString, forKey: "pendingTipEasyTransactionID")
+        UserDefaults.standard.set(ScanTipDestination.history.rawValue, forKey: "pendingScanTipDestination")
+        UserDefaults.standard.set(target.id.uuidString, forKey: "pendingScanTipTransactionID")
         return .result()
     }
 }
 
-struct OpenTipEasyIntent: AppIntent {
-    static var title: LocalizedStringResource = "Open Tip Easy"
-    static var description = IntentDescription("Open Tip Easy to a specific area.")
+struct OpenScanTipIntent: AppIntent {
+    static var title: LocalizedStringResource = "Open Scan Tip"
+    static var description = IntentDescription("Open Scan Tip to a specific area.")
     static var openAppWhenRun = true
 
     @Parameter(title: "Destination")
-    var destination: TipEasyDestination
+    var destination: ScanTipDestination
 
     init() {
         destination = .calculator
     }
 
-    init(destination: TipEasyDestination) {
+    init(destination: ScanTipDestination) {
         self.destination = destination
     }
 
     func perform() async throws -> some IntentResult {
-        UserDefaults.standard.set(destination.rawValue, forKey: "pendingTipEasyDestination")
+        UserDefaults.standard.set(destination.rawValue, forKey: "pendingScanTipDestination")
         UserDefaults.standard.set(destination == .scanner, forKey: "pendingOpenScanner")
         return .result()
     }
 }
 
-struct TipEasyShortcuts: AppShortcutsProvider {
+struct ScanTipShortcuts: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
         AppShortcut(
             intent: CalculateTipIntent(),
@@ -296,7 +296,7 @@ struct TipEasyShortcuts: AppShortcutsProvider {
         )
 
         AppShortcut(
-            intent: OpenTipEasyIntent(destination: .scanner),
+            intent: OpenScanTipIntent(destination: .scanner),
             phrases: [
                 "Scan a receipt with \(.applicationName)",
                 "Open \(.applicationName) scanner"
@@ -306,7 +306,7 @@ struct TipEasyShortcuts: AppShortcutsProvider {
         )
 
         AppShortcut(
-            intent: OpenTipEasyIntent(destination: .history),
+            intent: OpenScanTipIntent(destination: .history),
             phrases: [
                 "Show \(.applicationName) history",
                 "Open my \(.applicationName) tips"
