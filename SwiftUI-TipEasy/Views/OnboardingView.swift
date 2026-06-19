@@ -67,6 +67,10 @@ struct OnboardingView: View {
     }
 
     private func completeOnboarding() {
+        AnalyticsService.track(
+            .onboardingCompleted,
+            properties: ["completed_page": pages[selectedPage].id]
+        )
         hasCompletedOnboarding = true
     }
 }
@@ -179,5 +183,5 @@ private enum OnboardingPage: String, CaseIterable, Identifiable {
 
 #Preview {
     OnboardingView(hasCompletedOnboarding: .constant(false))
-        .environment(\.appTheme, .harvest)
+        .environment(\.appTheme, .standard)
 }

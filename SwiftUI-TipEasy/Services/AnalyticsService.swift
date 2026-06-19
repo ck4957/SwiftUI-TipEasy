@@ -14,8 +14,6 @@ enum AnalyticsEvent: String {
     case presetCreated = "preset_created"
     case presetEdited = "preset_edited"
     case presetDeleted = "preset_deleted"
-    case themeChanged = "theme_changed"
-    case appearanceChanged = "appearance_changed"
 }
 
 enum AnalyticsService {
@@ -48,17 +46,17 @@ enum AnalyticsService {
 
         switch wholePercent {
         case ..<15:
-            "under_15"
+            return "under_15"
         case 15:
-            "15"
+            return "15"
         case 16...18:
-            "16_18"
+            return "16_18"
         case 19...20:
-            "19_20"
+            return "19_20"
         case 21...25:
-            "21_25"
+            return "21_25"
         default:
-            "over_25"
+            return "over_25"
         }
     }
 }

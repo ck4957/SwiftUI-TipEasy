@@ -4,8 +4,6 @@ import SwiftUI
 struct TipPresetSettingsView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.appPalette) private var palette
-    @AppStorage("selectedAppTheme") private var selectedThemeRawValue = AppTheme.harvest.rawValue
-    @AppStorage("appAppearance") private var appAppearanceRawValue = AppAppearance.system.rawValue
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @Query(sort: \TipPreset.percentage) private var tipPresets: [TipPreset]
 
@@ -14,31 +12,9 @@ struct TipPresetSettingsView: View {
 
     private let defaultPresets: [Double] = [0.15, 0.18, 0.20, 0.25]
 
-    private var selectedTheme: AppTheme {
-        AppTheme(rawValue: selectedThemeRawValue) ?? .harvest
-    }
-
-    private var selectedThemeBinding: Binding<AppTheme> {
-        Binding {
-            selectedTheme
-        } set: { newValue in
-            selectedThemeRawValue = newValue.rawValue
-        }
-    }
-
-    private var appAppearanceBinding: Binding<AppAppearance> {
-        Binding {
-            AppAppearance(rawValue: appAppearanceRawValue) ?? .system
-        } set: { newValue in
-            appAppearanceRawValue = newValue.rawValue
-        }
-    }
-
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: .spacingLarge) {
-                appearanceCard
-                themeCard
                 guideCard
                 introCard
                 presetCard
@@ -61,41 +37,6 @@ struct TipPresetSettingsView: View {
         .sheet(isPresented: $showingPresetSheet) {
             AddEditPresetSheet(presetToEdit: presetToEdit, modelContext: modelContext)
         }
-    }
-
-    private var appearanceCard: some View {
-        VStack(alignment: .leading, spacing: .spacingMedium) {
-            Label("Appearance", systemImage: "circle.lefthalf.filled")
-                .font(.headline)
-
-            Picker("Appearance", selection: appAppearanceBinding) {
-                ForEach(AppAppearance.allCases) { appearance in
-                    Label(appearance.title, systemImage: appearance.iconName)
-                        .tag(appearance)
-                }
-            }
-            .pickerStyle(.segmented)
-        }
-        .settingsGlassCard(palette: palette)
-    }
-
-    private var themeCard: some View {
-        VStack(alignment: .leading, spacing: .spacingMedium) {
-            Label("Color Theme", systemImage: "paintpalette")
-                .font(.headline)
-
-            VStack(spacing: 10) {
-                ForEach(AppTheme.allCases) { theme in
-                    Button {
-                        selectedThemeBinding.wrappedValue = theme
-                    } label: {
-                        ThemeChoiceRow(theme: theme, isSelected: selectedTheme == theme)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-        }
-        .settingsGlassCard(palette: palette)
     }
 
     private var guideCard: some View {
@@ -208,6 +149,10 @@ struct TipPresetSettingsView: View {
             .accessibilityLabel("Edit \(Int(preset.percentage * 100)) percent preset")
 
             Button(role: .destructive) {
+                AnalyticsService.track(
+                    .presetDeleted,
+                    properties: ["tip_percent": String(Int((preset.percentage * 100).rounded()))]
+                )
                 withAnimation {
                     modelContext.delete(preset)
                 }
@@ -221,52 +166,6 @@ struct TipPresetSettingsView: View {
         .padding()
         .background(palette.card, in: RoundedRectangle(cornerRadius: 18))
         .glassEffect(.regular.tint(palette.glassTint), in: .rect(cornerRadius: 18))
-    }
-}
-
-private struct ThemeChoiceRow: View {
-    let theme: AppTheme
-    let isSelected: Bool
-
-    private var palette: ThemePalette {
-        theme.palette
-    }
-
-    var body: some View {
-        HStack(spacing: .spacingMedium) {
-            Image(systemName: theme.iconName)
-                .font(.title3)
-                .foregroundStyle(palette.accent)
-                .frame(width: 40, height: 40)
-                .background(palette.selectedTile, in: Circle())
-
-            VStack(alignment: .leading, spacing: 3) {
-                Text(theme.title)
-                    .font(.headline)
-                Text(theme.subtitle)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            Spacer()
-
-            HStack(spacing: 5) {
-                Circle().fill(palette.accent)
-                Circle().fill(palette.secondaryAccent)
-                Circle().fill(palette.highlight)
-            }
-            .frame(width: 54, height: 18)
-
-            Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                .foregroundStyle(isSelected ? palette.accent : .secondary)
-        }
-        .padding()
-        .background(isSelected ? palette.selectedTile : palette.tile, in: RoundedRectangle(cornerRadius: 18))
-        .overlay {
-            RoundedRectangle(cornerRadius: 18)
-                .strokeBorder(isSelected ? palette.accent.opacity(0.46) : palette.highlight.opacity(0.18), lineWidth: 1)
-        }
-        .glassEffect(.regular.tint(isSelected ? palette.accent.opacity(0.10) : palette.glassTint).interactive(), in: .rect(cornerRadius: 18))
     }
 }
 
@@ -332,8 +231,16 @@ struct AddEditPresetSheet: View {
 
         if let presetToEdit {
             presetToEdit.percentage = fraction
+            AnalyticsService.track(
+                .presetEdited,
+                properties: ["tip_percent": String(Int((fraction * 100).rounded()))]
+            )
         } else {
             modelContext.insert(TipPreset(percentage: fraction))
+            AnalyticsService.track(
+                .presetCreated,
+                properties: ["tip_percent": String(Int((fraction * 100).rounded()))]
+            )
         }
 
         dismiss()

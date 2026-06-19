@@ -4,18 +4,11 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
-    @AppStorage("selectedAppTheme") private var selectedThemeRawValue = AppTheme.harvest.rawValue
-    @AppStorage("appAppearance") private var appAppearanceRawValue = AppAppearance.system.rawValue
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @State private var selectedTab: AppTab = .calculator
+    @State private var hasTrackedAppOpen = false
 
-    private var selectedTheme: AppTheme {
-        AppTheme(rawValue: selectedThemeRawValue) ?? .harvest
-    }
-
-    private var appAppearance: AppAppearance {
-        AppAppearance(rawValue: appAppearanceRawValue) ?? .system
-    }
+    private let appTheme = AppTheme.standard
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -43,22 +36,35 @@ struct ContentView: View {
             }
             .tag(AppTab.settings)
         }
-        .environment(\.appTheme, selectedTheme)
-        .preferredColorScheme(appAppearance.colorScheme)
-        .tint(selectedTheme.palette.accent)
+        .background {
+            appTheme.palette.backgroundBottom
+                .ignoresSafeArea()
+        }
+        .toolbarBackground(.hidden, for: .tabBar)
+        .environment(\.appTheme, appTheme)
+        .tint(appTheme.palette.accent)
         .fullScreenCover(isPresented: onboardingPresentation) {
             OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
-                .environment(\.appTheme, selectedTheme)
-                .preferredColorScheme(appAppearance.colorScheme)
+                .environment(\.appTheme, appTheme)
         }
         .onAppear {
+            trackAppOpenIfNeeded()
             routePendingDestination()
+        }
+        .onChange(of: selectedTab) { _, newValue in
+            AnalyticsService.track(.tabSelected, properties: ["tab": newValue.analyticsName])
         }
         .onChange(of: scenePhase) { _, newValue in
             if newValue == .active {
                 routePendingDestination()
             }
         }
+    }
+
+    private func trackAppOpenIfNeeded() {
+        guard !hasTrackedAppOpen else { return }
+        hasTrackedAppOpen = true
+        AnalyticsService.track(.appOpened)
     }
 
     private var onboardingPresentation: Binding<Bool> {
@@ -95,6 +101,17 @@ private enum AppTab: Hashable {
     case calculator
     case history
     case settings
+
+    var analyticsName: String {
+        switch self {
+        case .calculator:
+            "calculator"
+        case .history:
+            "history"
+        case .settings:
+            "settings"
+        }
+    }
 }
 
 #Preview {
@@ -108,6 +125,7 @@ struct AdBannerView: UIViewRepresentable {
     func makeUIView(context: Context) -> BannerView {
         let bannerView = BannerView(adSize: AdSizeBanner)
         bannerView.adUnitID = adUnitID
+        bannerView.backgroundColor = .clear
 
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
            let rootViewController = windowScene.keyWindow?.rootViewController
@@ -119,5 +137,7 @@ struct AdBannerView: UIViewRepresentable {
         return bannerView
     }
 
-    func updateUIView(_ uiView: BannerView, context: Context) {}
+    func updateUIView(_ uiView: BannerView, context: Context) {
+        uiView.backgroundColor = .clear
+    }
 }

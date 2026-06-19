@@ -1,0 +1,9 @@
+{
+  "id" : "e40738be-6007-4fae-ba33-622e89c5491c",
+  "targets" : [
+    {
+      "id" : "ED50A879-01DD-4B6B-BA13-B0D662162277",
+      "name" : "SwiftUI-TipEasy"
+    }
+  ]
+}

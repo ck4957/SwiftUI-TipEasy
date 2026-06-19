@@ -61,6 +61,13 @@ struct ReceiptScannerSheet: View {
                 Spacer()
                 Button {
                     if detectedTotal != nil {
+                        AnalyticsService.track(
+                            .receiptScanUsed,
+                            properties: [
+                                "has_merchant": String(!scanResult.merchantName.isEmpty),
+                                "used_apple_intelligence": String(scanResult.usedAppleIntelligence)
+                            ]
+                        )
                         onDetectedResult(scanResult)
                     }
                 } label: {
