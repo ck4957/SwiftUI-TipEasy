@@ -6,11 +6,17 @@ struct TipPresetSettingsView: View {
     @Environment(\.appPalette) private var palette
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @Query(sort: \TipPreset.percentage) private var tipPresets: [TipPreset]
+    @Query private var transactions: [TipTransaction]
 
     @State private var showingPresetSheet = false
+    @State private var showingDeleteDataConfirmation = false
+    @State private var dataDeletionError: String?
     @State private var presetToEdit: TipPreset?
 
     private let defaultPresets: [Double] = [0.15, 0.18, 0.20, 0.25]
+    private var storedItemCount: Int {
+        tipPresets.count + transactions.count
+    }
 
     var body: some View {
         ScrollView {
@@ -18,6 +24,7 @@ struct TipPresetSettingsView: View {
                 guideCard
                 introCard
                 presetCard
+                privacyCard
             }
             .padding()
         }
@@ -36,6 +43,25 @@ struct TipPresetSettingsView: View {
         .navigationTitle("Settings")
         .sheet(isPresented: $showingPresetSheet) {
             AddEditPresetSheet(presetToEdit: presetToEdit, modelContext: modelContext)
+        }
+        .confirmationDialog(
+            "Delete local data?",
+            isPresented: $showingDeleteDataConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Delete Local Data", role: .destructive) {
+                deleteLocalData()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This removes saved tip history, custom presets, onboarding status, and pending shortcut state from this device. This cannot be undone.")
+        }
+        .alert("Could Not Delete Data", isPresented: deletionErrorPresentation) {
+            Button("OK") {
+                dataDeletionError = nil
+            }
+        } message: {
+            Text(dataDeletionError ?? "Please try again.")
         }
     }
 
@@ -61,6 +87,43 @@ struct TipPresetSettingsView: View {
                 hasCompletedOnboarding = false
             }
             .buttonStyle(.glass)
+        }
+        .settingsGlassCard(palette: palette)
+    }
+
+    private var privacyCard: some View {
+        VStack(alignment: .leading, spacing: .spacingMedium) {
+            HStack(alignment: .top, spacing: .spacingMedium) {
+                Image(systemName: "lock.shield")
+                    .font(.title2)
+                    .foregroundStyle(palette.accent)
+                    .frame(width: 42, height: 42)
+                    .background(palette.selectedTile, in: Circle())
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Privacy & Data")
+                        .font(.headline)
+                    Text("Delete saved tips, custom presets, and local app preferences from this device.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer()
+            }
+
+            Text("\(transactions.count) saved tip\(transactions.count == 1 ? "" : "s") and \(tipPresets.count) custom preset\(tipPresets.count == 1 ? "" : "s") are stored locally.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+            Button(role: .destructive) {
+                showingDeleteDataConfirmation = true
+            } label: {
+                Label("Delete Local Data", systemImage: "trash")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.glass)
+            .disabled(storedItemCount == 0 && !hasCompletedOnboarding)
+            .accessibilityHint("Deletes saved tip history, custom presets, onboarding status, and pending shortcut state from this device.")
         }
         .settingsGlassCard(palette: palette)
     }
@@ -166,6 +229,37 @@ struct TipPresetSettingsView: View {
         .padding()
         .background(palette.card, in: RoundedRectangle(cornerRadius: 18))
         .glassEffect(.regular.tint(palette.glassTint), in: .rect(cornerRadius: 18))
+    }
+
+    private var deletionErrorPresentation: Binding<Bool> {
+        Binding {
+            dataDeletionError != nil
+        } set: { isPresented in
+            if !isPresented {
+                dataDeletionError = nil
+            }
+        }
+    }
+
+    private func deleteLocalData() {
+        do {
+            try modelContext.delete(model: TipTransaction.self)
+            try modelContext.delete(model: TipPreset.self)
+            try modelContext.save()
+
+            let defaults = UserDefaults.standard
+            [
+                "hasCompletedOnboarding",
+                "pendingOpenScanner",
+                "pendingTipEasyDestination",
+                "pendingTipEasyTransactionID"
+            ].forEach(defaults.removeObject(forKey:))
+
+            hasCompletedOnboarding = false
+            AnalyticsService.track(.localDataDeleted)
+        } catch {
+            dataDeletionError = error.localizedDescription
+        }
     }
 }
 
