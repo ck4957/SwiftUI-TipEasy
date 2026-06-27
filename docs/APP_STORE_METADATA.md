@@ -47,9 +47,9 @@ Scan Tip also supports customizable tip presets, appearance themes, onboarding r
 
 ## URLs
 
-- Privacy policy URL: https://ck4957.github.io/ScanTip/privacy.html
-- Support URL: https://ck4957.github.io/ScanTip/support.html
-- Marketing URL: https://ck4957.github.io/ScanTip/
+- Privacy policy URL: https://ck4957.github.io/SwiftUI-TipEasy/privacy.html
+- Support URL: https://ck4957.github.io/SwiftUI-TipEasy/support.html
+- Marketing URL: https://ck4957.github.io/SwiftUI-TipEasy/
 
 ## Review Support
 
