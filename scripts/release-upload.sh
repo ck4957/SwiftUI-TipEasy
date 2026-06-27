@@ -96,12 +96,31 @@ archive_args+=(
 xcodebuild "${archive_args[@]}"
 
 echo "Exporting App Store Connect IPA..."
-xcodebuild -exportArchive \
+resolved_export_options="$EXPORT_OPTIONS"
+if [[ -n "$PROVISIONING_PROFILE_SPECIFIER" ]]; then
+  resolved_export_options="$PWD/build/ExportOptions.manual.plist"
+  /usr/libexec/PlistBuddy -c "Clear dict" "$resolved_export_options" 2>/dev/null || true
+  /usr/libexec/PlistBuddy -c "Add :method string app-store-connect" "$resolved_export_options"
+  /usr/libexec/PlistBuddy -c "Add :destination string export" "$resolved_export_options"
+  /usr/libexec/PlistBuddy -c "Add :manageAppVersionAndBuildNumber bool false" "$resolved_export_options"
+  /usr/libexec/PlistBuddy -c "Add :signingStyle string manual" "$resolved_export_options"
+  /usr/libexec/PlistBuddy -c "Add :teamID string $TEAM_ID" "$resolved_export_options"
+  /usr/libexec/PlistBuddy -c "Add :provisioningProfiles dict" "$resolved_export_options"
+  /usr/libexec/PlistBuddy -c "Add :provisioningProfiles:com.chiragkular.SwiftUI-TipEasy string $PROVISIONING_PROFILE_SPECIFIER" "$resolved_export_options"
+fi
+export_args=(
+  -exportArchive \
   -archivePath "$ARCHIVE_PATH" \
   -exportPath "$EXPORT_PATH" \
-  -exportOptionsPlist "$EXPORT_OPTIONS" \
-  -allowProvisioningUpdates \
-  "${authentication_args[@]}"
+  -exportOptionsPlist "$resolved_export_options"
+)
+if [[ -z "$PROVISIONING_PROFILE_SPECIFIER" ]]; then
+  export_args+=(
+    -allowProvisioningUpdates \
+    "${authentication_args[@]}"
+  )
+fi
+xcodebuild "${export_args[@]}"
 
 IPA_PATH=$(find "$EXPORT_PATH" -maxdepth 1 -name "*.ipa" -print -quit)
 if [[ -z "$IPA_PATH" ]]; then
