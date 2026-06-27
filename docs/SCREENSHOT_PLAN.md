@@ -47,5 +47,5 @@ Status: NEEDS_INPUT
 ## Open Questions
 
 - Final iPhone and iPad screenshot device sizes are confirmed from Apple App Store Connect screenshot specifications: iPhone 6.9" and iPad 13".
-- Confirm whether screenshots should show live ads, test ads, or no ad banner.
+- Confirm final screenshot ordering and captions.
 - Confirm whether marketing copy overlays should be used or whether raw simulator screenshots are preferred.

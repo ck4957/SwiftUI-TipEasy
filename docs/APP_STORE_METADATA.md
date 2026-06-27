@@ -26,11 +26,11 @@ The app can save local dining history, summarize recent totals, and detect possi
 Scan Tip also supports customizable tip presets, appearance themes, onboarding replay, local data deletion, and App Shortcuts for common calculator actions.
 
 - Keywords: tip calculator, restaurant, receipt scanner, gratuity, dining, bill splitter, tip, calculator, history
-- What's new: Version 1.2 adds receipt scanning, saved tip history, on-device tip insights, App Shortcuts, iPad support, and Google Mobile Ads integration. NEEDS_CONFIRMATION
+- What's new: Version 1.2 adds receipt scanning, saved tip history, on-device tip insights, App Shortcuts, iPad support, and onboarding updates. NEEDS_CONFIRMATION
 
 ## Business And Availability
 
-- Business model: Free with ads - NEEDS_CONFIRMATION
+- Business model: Free, no ads, no in-app purchases - NEEDS_CONFIRMATION
 - Pricing: Free - NEEDS_CONFIRMATION
 - Regions: NEEDS_CONFIRMATION
 - Release mode: manual - NEEDS_CONFIRMATION
@@ -38,7 +38,7 @@ Scan Tip also supports customizable tip presets, appearance themes, onboarding r
 - Age rating inputs:
   - User-generated content: No known social/user-published content.
   - Web access: No general web browsing found.
-  - Ads: Yes, Google Mobile Ads SDK is included.
+  - Ads: No ad SDK found.
   - Purchases: No in-app purchase code found.
   - Location: No active location permission found; future request mentions location/map features only.
   - Camera: Yes, camera is used for receipt scanning.
@@ -58,5 +58,4 @@ Scan Tip also supports customizable tip presets, appearance themes, onboarding r
   - Camera access is used only to scan receipt text for bill totals and possible included service charges.
   - Saved tip presets and saved transactions are stored locally with SwiftData.
   - Users can delete local saved tips, custom presets, onboarding status, and pending shortcut state from Settings > Privacy & Data > Delete Local Data.
-  - Google Mobile Ads SDK is present and SKAdNetwork identifiers are configured.
   - Production analytics provider is not connected in code; `AnalyticsService` prints in DEBUG and has a placeholder for release builds.

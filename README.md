@@ -19,7 +19,6 @@ com.chiragkular.SwiftUI-TipEasy
 - Settings for appearance, onboarding replay, data controls, and privacy actions.
 - App Shortcuts for common Scan Tip actions.
 - iPhone and iPad support.
-- Google Mobile Ads SDK integration.
 
 ## App Store Links
 
@@ -31,7 +30,7 @@ The static pages live in `docs/` and are published with GitHub Pages.
 
 ## Project Structure
 
-- `Scan Tip/SwiftUI_ScanTipApp.swift`: app entry point, Google Mobile Ads startup, and SwiftData model container.
+- `Scan Tip/SwiftUI_ScanTipApp.swift`: app entry point and SwiftData model container.
 - `Scan Tip/Views/ContentView.swift`: tab shell for Calculator, History, and Settings.
 - `Scan Tip/Views/TipCalculatorView.swift`: main calculator, receipt scanner entry point, tip controls, save actions, and insights.
 - `Scan Tip/Views/ReceiptScannerSheet.swift`: camera/receipt scanning flow.
@@ -117,7 +116,7 @@ App Store sized screenshots are stored in `screenshots/generated/`.
 
 ## Release Notes
 
-Version `1.2`, build `4`, adds receipt scanning, saved tip history, on-device tip insights, App Shortcuts, iPad support, onboarding updates, and Google Mobile Ads integration.
+Version `1.2`, build `5`, adds receipt scanning, saved tip history, on-device tip insights, App Shortcuts, iPad support, and onboarding updates.
 
 Every new upload for the same App Store version must increment `CURRENT_PROJECT_VERSION`.
 
@@ -135,7 +134,7 @@ Run the lightweight release gate before release commits:
 
 ## Privacy
 
-Scan Tip does not require login. Saved tip history and custom presets are stored locally on the device with SwiftData. Camera access is used for receipt scanning. Google Mobile Ads may process advertising-related data depending on user settings, consent choices, and applicable law.
+Scan Tip does not require login. Saved tip history and custom presets are stored locally on the device with SwiftData. Camera access is used for receipt scanning.
 
 See `docs/privacy.html` and `docs/APP_PRIVACY_MATRIX.md` for release review details.
 

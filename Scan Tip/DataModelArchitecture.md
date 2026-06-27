@@ -9,7 +9,7 @@ The SwiftData container is configured in `SwiftUI_ScanTipApp.swift` for:
 - `TipPreset`
 - `TipTransaction`
 
-Google Mobile Ads is initialized through the app delegate at launch, but ad state is not part of the app data model.
+No ad SDK state is part of the app data model.
 
 ## Persistent Models
 

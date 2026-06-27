@@ -6,10 +6,6 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		2B37C2D12D9E0659000D259B /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 2B37C2D02D9E0659000D259B /* GoogleMobileAds */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXFileReference section */
 		2BC8BDE72D5831C700197BC4 /* Scan Tip.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Scan Tip.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -18,7 +14,10 @@
 		2B37C2D32D9E0673000D259B /* Exceptions for "Scan Tip" folder in "Scan Tip" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				DataModelArchitecture.md,
 				Info.plist,
+				Resources/Assets.xcassets,
+				ViewHierarchyArchitecture.md,
 			);
 			target = 2BC8BDE62D5831C700197BC4 /* Scan Tip */;
 		};
@@ -40,7 +39,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2B37C2D12D9E0659000D259B /* GoogleMobileAds in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -83,7 +81,6 @@
 			);
 			name = "Scan Tip";
 			packageProductDependencies = (
-				2B37C2D02D9E0659000D259B /* GoogleMobileAds */,
 			);
 			productName = "Scan Tip";
 			productReference = 2BC8BDE72D5831C700197BC4 /* Scan Tip.app */;
@@ -114,7 +111,6 @@
 			mainGroup = 2BC8BDDE2D5831C700197BC4;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				2B37C2CF2D9E0659000D259B /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 2BC8BDE82D5831C700197BC4 /* Products */;
@@ -276,7 +272,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_ASSET_PATHS = "\"Scan Tip/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -307,7 +303,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_ASSET_PATHS = "\"Scan Tip/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -355,24 +351,6 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCRemoteSwiftPackageReference section */
-		2B37C2CF2D9E0659000D259B /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 12.2.0;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		2B37C2D02D9E0659000D259B /* GoogleMobileAds */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 2B37C2CF2D9E0659000D259B /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
-			productName = GoogleMobileAds;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 2BC8BDDF2D5831C700197BC4 /* Project object */;
 }

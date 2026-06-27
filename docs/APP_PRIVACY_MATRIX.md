@@ -7,9 +7,9 @@ Privacy answers must be reviewed before App Store submission. This file records 
 | Data type | Collected | Linked to user | Used for tracking | Purpose | Evidence | Status |
 | --- | --- | --- | --- | --- | --- | --- |
 | Contact Info | No evidence found | No evidence found | No evidence found | Not used by current app code | No login, account, email, or contact fields found | NEEDS_CONFIRMATION |
-| Identifiers | NEEDS_CONFIRMATION | NEEDS_CONFIRMATION | NEEDS_CONFIRMATION | Ads / attribution may involve device or advertising identifiers | Google Mobile Ads SDK, GoogleUserMessagingPlatform, GADApplicationIdentifier, SKAdNetworkItems | NEEDS_CONFIRMATION |
-| Usage Data | Local app events only in current code; ad SDK behavior needs confirmation | NEEDS_CONFIRMATION | NEEDS_CONFIRMATION | App analytics debugging, ads, product improvement | `AnalyticsService` prints events only in DEBUG; Google Mobile Ads SDK is included | NEEDS_CONFIRMATION |
-| Diagnostics | NEEDS_CONFIRMATION | NEEDS_CONFIRMATION | NEEDS_CONFIRMATION | SDK diagnostics/crash/performance may be collected by third-party SDKs | Google Mobile Ads SDK dependency | NEEDS_CONFIRMATION |
+| Identifiers | No evidence found | No evidence found | No evidence found | Not used by current app code | No ad SDK, login, analytics SDK, or tracking identifier usage found | NEEDS_CONFIRMATION |
+| Usage Data | Local app events only in DEBUG current code | No evidence found | No evidence found | App analytics debugging only | `AnalyticsService` prints events only in DEBUG and has no production provider connected | NEEDS_CONFIRMATION |
+| Diagnostics | No evidence found | No evidence found | No evidence found | Not used by current app code | No crash reporting or diagnostics SDK found | NEEDS_CONFIRMATION |
 | Financial Info | Local only when user saves tip transactions | No account link found | No evidence found | App functionality: saved bill, tip, and total history | `TipTransaction` stores billAmount, tipAmount, totalAmount in SwiftData | NEEDS_CONFIRMATION |
 | Location | No current collection found | No evidence found | No evidence found | Not used in current release code | No CoreLocation/MapKit usage found; feature request mentions future location/map work | NEEDS_CONFIRMATION |
 | Photos or Videos | No current collection found | No evidence found | No evidence found | Not used in current release code | No Photos framework or photo picker usage found; future request mentions photo | NEEDS_CONFIRMATION |
@@ -18,9 +18,8 @@ Privacy answers must be reviewed before App Store submission. This file records 
 
 ## SDK-Driven Collection Notes
 
-- Google Mobile Ads SDK 12.2.0 and GoogleUserMessagingPlatform 3.0.0 are included through CocoaPods.
-- `Info.plist` contains `GADApplicationIdentifier` and SKAdNetwork identifiers.
-- Final App Privacy details for ads, identifiers, tracking, diagnostics, consent, and linked-to-user status must be confirmed against the Google Mobile Ads SDK configuration and App Store Connect privacy questionnaire.
+- No ad, analytics, crash-reporting, attribution, or consent SDK is present in the current project.
+- `Info.plist` does not contain `GADApplicationIdentifier` or `SKAdNetworkItems`.
 
 ## Local Storage Notes
 
@@ -31,8 +30,6 @@ Privacy answers must be reviewed before App Store submission. This file records 
 
 ## Unresolved Privacy Questions
 
-- Confirm whether Google Mobile Ads is configured for personalized ads, non-personalized ads, or consent-gated behavior.
-- Confirm whether App Tracking Transparency is required for the selected ad configuration.
 - Confirm whether any production analytics provider will be connected before release.
 - Confirm final disclosure treatment for saved bill totals, restaurant names, and receipt-derived fields.
-- Confirm whether a privacy policy URL exists and covers ads, SDKs, local storage, camera scanning, and Apple Intelligence on-device processing.
+- Confirm whether a privacy policy URL exists and covers local storage, camera scanning, and Apple Intelligence on-device processing.

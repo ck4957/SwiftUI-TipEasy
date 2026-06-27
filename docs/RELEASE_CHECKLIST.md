@@ -34,7 +34,6 @@ Status: NEEDS_INPUT
 - [ ] Support URL live
 - [ ] Marketing URL live, if used
 - [ ] App Privacy questionnaire completed from confirmed data practices
-- [ ] Google Mobile Ads privacy/tracking behavior confirmed
 - [ ] User Messaging Platform / consent behavior confirmed
 - [ ] Camera permission rationale reviewed
 - [x] User-facing local data deletion option implemented
@@ -70,6 +69,5 @@ Status: NEEDS_INPUT
 
 - NEEDS_CONFIRMATION: privacy policy URL
 - NEEDS_CONFIRMATION: support URL and support contact
-- NEEDS_CONFIRMATION: Google Mobile Ads tracking/privacy answers
 - NEEDS_CONFIRMATION: final pricing, regions, categories, release mode, and age rating
 - NEEDS_CONFIRMATION: final App Store screenshot set

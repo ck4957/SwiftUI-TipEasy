@@ -1,5 +1,3 @@
-import GoogleMobileAds
-
 import SwiftUI
 
 struct ContentView: View {
@@ -116,28 +114,4 @@ private enum AppTab: Hashable {
 
 #Preview {
     ContentView()
-}
-
-// UIViewRepresentable wrapper for AdMob banner view
-struct AdBannerView: UIViewRepresentable {
-    let adUnitID: String
-
-    func makeUIView(context: Context) -> BannerView {
-        let bannerView = BannerView(adSize: AdSizeBanner)
-        bannerView.adUnitID = adUnitID
-        bannerView.backgroundColor = .clear
-
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let rootViewController = windowScene.keyWindow?.rootViewController
-        {
-            bannerView.rootViewController = rootViewController
-        }
-        bannerView.load(Request())
-
-        return bannerView
-    }
-
-    func updateUIView(_ uiView: BannerView, context: Context) {
-        uiView.backgroundColor = .clear
-    }
 }

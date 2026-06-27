@@ -6,7 +6,6 @@ The root app type is `ScanTipApp` in `SwiftUI_ScanTipApp.swift`.
 
 Launch responsibilities:
 
-- Initializes Google Mobile Ads through `AppDelegate`.
 - Creates the main `WindowGroup`.
 - Presents `ContentView`.
 - Attaches a SwiftData model container for `TipPreset` and `TipTransaction`.
@@ -40,8 +39,6 @@ ScanTipApp
         └── NavigationStack
             └── TipPresetSettingsView
 ```
-
-`ContentView` also defines `AdBannerView`, a `UIViewRepresentable` wrapper around Google Mobile Ads `BannerView`.
 
 ## Onboarding Flow
 
@@ -105,7 +102,6 @@ Toolbar and sheets:
 - The navigation toolbar has a camera button that presents `ReceiptScannerSheet`.
 - The keyboard toolbar has a Done button to dismiss focus.
 - Saving triggers success feedback and a confirmation alert.
-- A bottom safe-area inset hosts the AdMob banner.
 
 Calculator save flow:
 
