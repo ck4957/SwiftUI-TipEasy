@@ -6,7 +6,7 @@ Status: NEEDS_INPUT
 
 - [x] Bundle identifier documented: `com.chiragkular.SwiftUI-TipEasy`
 - [x] Version documented: `1.2`
-- [x] Build number documented: `4`
+- [x] Build number documented: `8`
 - [x] Target device families documented: iPhone and iPad
 - [ ] Version bump confirmed for release
 - [ ] Build number bump confirmed for release
@@ -27,6 +27,7 @@ Status: NEEDS_INPUT
 - [ ] Release mode confirmed
 - [ ] Content rights confirmed
 - [ ] Age rating answers confirmed
+- [x] Routing app coverage file marked not applicable
 
 ## Privacy And Compliance
 

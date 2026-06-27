@@ -7,7 +7,7 @@ Status: NEEDS_INPUT
 - App name: Scan Tip
 - Bundle ID: com.chiragkular.SwiftUI-TipEasy
 - Version: 1.2
-- Build: 4
+- Build: 8
 - Platforms: iPhone, iPad
 - Minimum OS: iOS 26.0
 - Primary category: Food & Drink
@@ -44,6 +44,11 @@ Scan Tip also supports customizable tip presets, appearance themes, onboarding r
   - Camera: Yes, camera is used for receipt scanning.
   - AI/ML: Uses Apple's FoundationModels/SystemLanguageModel on supported devices for receipt field refinement.
   - Final App Store age rating answers: NEEDS_CONFIRMATION
+
+## Routing App Coverage
+
+- Routing app: No. This app does not provide Maps directions or include `MKDirectionsApplicationSupportedModes`.
+- Geographic coverage file: Not applicable. Do not upload a `.geojson` routing coverage file unless the app intentionally adds Maps routing support in a future release.
 
 ## URLs
 

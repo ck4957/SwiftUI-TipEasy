@@ -4,7 +4,7 @@ set -euo pipefail
 WORKSPACE=${WORKSPACE:-"Scan Tip.xcworkspace"}
 SCHEME=${SCHEME:-"Scan Tip"}
 CONFIGURATION=${CONFIGURATION:-Release}
-SDK=${SDK:-iphoneos26.5}
+SDK=${SDK:-iphoneos}
 DESTINATION=${DESTINATION:-"generic/platform=iOS"}
 TEAM_ID=${TEAM_ID:-64FN52KV6J}
 ARCHIVE_PATH=${ARCHIVE_PATH:-"$PWD/build/ScanTip.xcarchive"}
@@ -12,6 +12,7 @@ EXPORT_PATH=${EXPORT_PATH:-"$PWD/build/AppStoreExport"}
 EXPORT_OPTIONS=${EXPORT_OPTIONS:-"$PWD/ExportOptions.plist"}
 MAX_UPLOAD_ATTEMPTS=${MAX_UPLOAD_ATTEMPTS:-3}
 AUTO_INCREMENT_BUILD=${AUTO_INCREMENT_BUILD:-0}
+SIGNING_CERTIFICATE=${SIGNING_CERTIFICATE:-}
 
 if [[ -f "$PWD/.env" ]]; then
   set -a
@@ -40,8 +41,21 @@ if [[ ! -f "$ASC_API_KEY_PATH" ]]; then
   exit 1
 fi
 
+authentication_args=(
+  -authenticationKeyPath "$ASC_API_KEY_PATH"
+  -authenticationKeyID "$ASC_API_KEY_ID"
+  -authenticationKeyIssuerID "$ASC_API_ISSUER_ID"
+)
+
+signing_args=()
+if [[ -n "$SIGNING_CERTIFICATE" ]]; then
+  signing_args+=(CODE_SIGN_IDENTITY="$SIGNING_CERTIFICATE")
+fi
+
 echo "Using Xcode:"
 xcodebuild -version
+echo "Using SDKs:"
+xcodebuild -showsdks
 
 if [[ "$AUTO_INCREMENT_BUILD" == "1" ]]; then
   echo "Incrementing build number..."
@@ -62,6 +76,8 @@ xcodebuild \
   DEVELOPMENT_TEAM="$TEAM_ID" \
   CODE_SIGN_STYLE=Automatic \
   -allowProvisioningUpdates \
+  "${authentication_args[@]}" \
+  "${signing_args[@]}" \
   clean archive
 
 echo "Exporting App Store Connect IPA..."
@@ -69,7 +85,8 @@ xcodebuild -exportArchive \
   -archivePath "$ARCHIVE_PATH" \
   -exportPath "$EXPORT_PATH" \
   -exportOptionsPlist "$EXPORT_OPTIONS" \
-  -allowProvisioningUpdates
+  -allowProvisioningUpdates \
+  "${authentication_args[@]}"
 
 IPA_PATH=$(find "$EXPORT_PATH" -maxdepth 1 -name "*.ipa" -print -quit)
 if [[ -z "$IPA_PATH" ]]; then
