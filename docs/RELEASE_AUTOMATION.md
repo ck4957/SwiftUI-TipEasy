@@ -88,7 +88,7 @@ Required GitHub encrypted secrets:
 - `APPLE_DISTRIBUTION_CERTIFICATE_P12_BASE64`: Base64-encoded Apple Distribution `.p12` signing certificate.
 - `APPLE_DISTRIBUTION_CERTIFICATE_PASSWORD`: Password for the `.p12` certificate.
 - `KEYCHAIN_PASSWORD`: Temporary CI keychain password.
-- `APPSTORE_PROVISIONING_PROFILE_BASE64`: Optional base64-encoded App Store provisioning profile. The workflow can also request provisioning updates with the App Store Connect API key.
+- `APPSTORE_PROVISIONING_PROFILE_BASE64`: Base64-encoded App Store provisioning profile for `com.chiragkular.SwiftUI-TipEasy`. The workflow can try automatic provisioning without it, but GitHub-hosted CI is more reliable when this secret is set.
 
 Never commit `.p8`, `.mobileprovision`, `.cer`, `.p12`, or passwords.
 
@@ -133,7 +133,9 @@ Paste that value into:
 
 - `APPSTORE_PROVISIONING_PROFILE_BASE64`
 
-This provisioning profile secret is optional because the workflow also passes the App Store Connect API key to `xcodebuild -allowProvisioningUpdates`. If automatic provisioning fails in CI, add the profile secret and rerun the workflow.
+Use an App Store distribution profile for bundle ID `com.chiragkular.SwiftUI-TipEasy`, generated with the same Apple Distribution certificate exported as `APPLE_DISTRIBUTION_CERTIFICATE_P12_BASE64`.
+
+This provisioning profile secret is technically optional because the workflow also passes the App Store Connect API key to `xcodebuild -allowProvisioningUpdates`. If automatic provisioning fails in CI with a 401 or "No profiles" error, add the profile secret and rerun the workflow.
 
 ## Release Doctor
 

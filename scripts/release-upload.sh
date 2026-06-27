@@ -7,6 +7,8 @@ CONFIGURATION=${CONFIGURATION:-Release}
 SDK=${SDK:-iphoneos}
 DESTINATION=${DESTINATION:-"generic/platform=iOS"}
 TEAM_ID=${TEAM_ID:-64FN52KV6J}
+CODE_SIGN_STYLE=${CODE_SIGN_STYLE:-Automatic}
+PROVISIONING_PROFILE_SPECIFIER=${PROVISIONING_PROFILE_SPECIFIER:-}
 ARCHIVE_PATH=${ARCHIVE_PATH:-"$PWD/build/ScanTip.xcarchive"}
 EXPORT_PATH=${EXPORT_PATH:-"$PWD/build/AppStoreExport"}
 EXPORT_OPTIONS=${EXPORT_OPTIONS:-"$PWD/ExportOptions.plist"}
@@ -52,6 +54,14 @@ if [[ -n "$SIGNING_CERTIFICATE" ]]; then
   signing_args+=(CODE_SIGN_IDENTITY="$SIGNING_CERTIFICATE")
 fi
 
+build_setting_args=(
+  DEVELOPMENT_TEAM="$TEAM_ID"
+  CODE_SIGN_STYLE="$CODE_SIGN_STYLE"
+)
+if [[ -n "$PROVISIONING_PROFILE_SPECIFIER" ]]; then
+  build_setting_args+=(PROVISIONING_PROFILE_SPECIFIER="$PROVISIONING_PROFILE_SPECIFIER")
+fi
+
 echo "Using Xcode:"
 xcodebuild -version
 echo "Using SDKs:"
@@ -73,8 +83,7 @@ archive_args=(
   -sdk "$SDK" \
   -destination "$DESTINATION" \
   -archivePath "$ARCHIVE_PATH" \
-  DEVELOPMENT_TEAM="$TEAM_ID" \
-  CODE_SIGN_STYLE=Automatic \
+  "${build_setting_args[@]}" \
   -allowProvisioningUpdates \
   "${authentication_args[@]}"
 )

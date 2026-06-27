@@ -25,6 +25,7 @@ jobs:
       SDK: iphoneos
       DESTINATION: generic/platform=iOS
       ASC_API_KEY_PATH: ${{ github.workspace }}/private_keys/AuthKey_${{ secrets.ASC_API_KEY_ID }}.p8
+      SIGNING_CERTIFICATE: Apple Distribution
       HAS_APPSTORE_PROVISIONING_PROFILE: ${{ secrets.APPSTORE_PROVISIONING_PROFILE_BASE64 != '' }}
 
     steps:
@@ -78,8 +79,13 @@ jobs:
           printf '%s' "$APPSTORE_PROVISIONING_PROFILE_BASE64" | base64 -D > "$profile_path"
           security cms -D -i "$profile_path" > "$profile_plist"
           uuid=$(/usr/libexec/PlistBuddy -c 'Print :UUID' "$profile_plist")
+          name=$(/usr/libexec/PlistBuddy -c 'Print :Name' "$profile_plist")
           mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
           cp "$profile_path" "$HOME/Library/MobileDevice/Provisioning Profiles/$uuid.mobileprovision"
+          {
+            echo "CODE_SIGN_STYLE=Manual"
+            echo "PROVISIONING_PROFILE_SPECIFIER=$name"
+          } >> "$GITHUB_ENV"
 
       - name: Set requested build number
         if: ${{ inputs.build_number != '' }}
