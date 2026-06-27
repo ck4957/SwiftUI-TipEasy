@@ -129,6 +129,20 @@ p {
   padding-bottom: 36px;
 }
 
+.video-preview {
+  padding-bottom: 40px;
+}
+
+.product-video {
+  display: block;
+  width: min(100%, 920px);
+  margin-top: 24px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #000000;
+  box-shadow: 0 16px 40px rgb(15 23 42 / 0.12);
+}
+
 .screenshot-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
