@@ -87,10 +87,10 @@ cp .env.example .env
 Fill in:
 
 ```bash
-ASC_API_KEY_ID="AT4SC3TU7Y1L"
+ASC_API_KEY_ID="paste-api-key-id-here"
 ASC_API_ISSUER_ID="paste-issuer-id-here"
 ASC_APPLE_ID="paste-numeric-app-apple-id-here"
-ASC_API_KEY_PATH="./ApiKey_AT4SC3TU7Y1L.p8"
+ASC_API_KEY_PATH="./ApiKey_<KEY_ID>.p8"
 ```
 
 Then archive, export, validate, and upload with one command:

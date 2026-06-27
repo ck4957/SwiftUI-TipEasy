@@ -7,7 +7,7 @@ enum ReceiptPhotoStore {
     static func save(_ data: Data) throws -> String {
         let filename = "\(UUID().uuidString).jpg"
         let url = try photoDirectory().appendingPathComponent(filename)
-        try data.write(to: url, options: [.atomic])
+        try data.write(to: url, options: [.atomic, .completeFileProtection])
         return filename
     }
 
@@ -48,8 +48,17 @@ enum ReceiptPhotoStore {
         let directory = baseURL.appendingPathComponent(directoryName, isDirectory: true)
 
         if !FileManager.default.fileExists(atPath: directory.path) {
-            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            try FileManager.default.createDirectory(
+                at: directory,
+                withIntermediateDirectories: true,
+                attributes: [.protectionKey: FileProtectionType.complete]
+            )
         }
+
+        var resourceValues = URLResourceValues()
+        resourceValues.isExcludedFromBackup = true
+        var mutableDirectory = directory
+        try? mutableDirectory.setResourceValues(resourceValues)
 
         return directory
     }
