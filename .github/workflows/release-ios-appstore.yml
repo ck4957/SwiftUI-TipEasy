@@ -25,7 +25,6 @@ jobs:
       SDK: iphoneos
       DESTINATION: generic/platform=iOS
       ASC_API_KEY_PATH: ${{ github.workspace }}/private_keys/AuthKey_${{ secrets.ASC_API_KEY_ID }}.p8
-      SIGNING_CERTIFICATE: Apple Distribution
       HAS_APPSTORE_PROVISIONING_PROFILE: ${{ secrets.APPSTORE_PROVISIONING_PROFILE_BASE64 != '' }}
 
     steps:
@@ -53,20 +52,31 @@ jobs:
 
       - name: Install signing certificate
         env:
+          APPLE_DISTRIBUTION_CERTIFICATE_CER_BASE64: ${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE_CER_BASE64 }}
           APPLE_DISTRIBUTION_CERTIFICATE_P12_BASE64: ${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE_P12_BASE64 }}
           APPLE_DISTRIBUTION_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE_PASSWORD }}
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
         run: |
           set -euo pipefail
           keychain_path="$RUNNER_TEMP/app-signing.keychain-db"
+          certificate_der_path="$RUNNER_TEMP/apple-distribution.cer"
           certificate_path="$RUNNER_TEMP/apple-distribution.p12"
+          printf '%s' "$APPLE_DISTRIBUTION_CERTIFICATE_CER_BASE64" | base64 -D > "$certificate_der_path"
           printf '%s' "$APPLE_DISTRIBUTION_CERTIFICATE_P12_BASE64" | base64 -D > "$certificate_path"
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$keychain_path"
           security set-keychain-settings -lut 21600 "$keychain_path"
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$keychain_path"
+          security import "$certificate_der_path" -A -t cert -f x509 -k "$keychain_path"
           security import "$certificate_path" -P "$APPLE_DISTRIBUTION_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$keychain_path"
           security list-keychain -d user -s "$keychain_path"
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$keychain_path"
+          security find-identity -v -p codesigning "$keychain_path"
+          identity=$(security find-identity -v -p codesigning "$keychain_path" | sed -n 's/.*"\(Apple Distribution:[^"]*\)".*/\1/p' | head -n 1)
+          if [[ -z "$identity" ]]; then
+            echo "No Apple Distribution signing identity with private key was found in the CI keychain." >&2
+            exit 1
+          fi
+          echo "SIGNING_CERTIFICATE=$identity" >> "$GITHUB_ENV"
 
       - name: Install provisioning profile
         if: ${{ env.HAS_APPSTORE_PROVISIONING_PROFILE == 'true' }}
