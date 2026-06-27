@@ -105,7 +105,7 @@ Create these text secrets from App Store Connect:
 - `ASC_API_KEY_ID`: The key ID from App Store Connect > Users and Access > Integrations > App Store Connect API.
 - `ASC_API_ISSUER_ID`: The issuer ID shown on the same App Store Connect API page.
 - `ASC_APPLE_ID`: The numeric Apple ID for the app record in App Store Connect.
-- `ASC_API_KEY_P8`: The full contents of the downloaded `AuthKey_<KEY_ID>.p8` file.
+- `ASC_API_KEY_P8`: The full contents of the downloaded `AuthKey_<KEY_ID>.p8` file, including the `-----BEGIN PRIVATE KEY-----` and `-----END PRIVATE KEY-----` lines.
 - `APPLE_TEAM_ID`: The Apple Developer Team ID, currently `64FN52KV6J`.
 
 Export an Apple Distribution certificate from Keychain Access as a `.p12` file, then encode it for GitHub:
