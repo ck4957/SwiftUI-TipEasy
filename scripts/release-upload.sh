@@ -66,7 +66,7 @@ echo "Cleaning previous archive/export..."
 rm -rf "$ARCHIVE_PATH" "$EXPORT_PATH"
 
 echo "Archiving $SCHEME..."
-xcodebuild \
+archive_args=(
   -workspace "$WORKSPACE" \
   -scheme "$SCHEME" \
   -configuration "$CONFIGURATION" \
@@ -76,9 +76,15 @@ xcodebuild \
   DEVELOPMENT_TEAM="$TEAM_ID" \
   CODE_SIGN_STYLE=Automatic \
   -allowProvisioningUpdates \
-  "${authentication_args[@]}" \
-  "${signing_args[@]}" \
+  "${authentication_args[@]}"
+)
+if [[ "${#signing_args[@]}" -gt 0 ]]; then
+  archive_args+=("${signing_args[@]}")
+fi
+archive_args+=(
   clean archive
+)
+xcodebuild "${archive_args[@]}"
 
 echo "Exporting App Store Connect IPA..."
 xcodebuild -exportArchive \
