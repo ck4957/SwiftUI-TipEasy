@@ -54,7 +54,7 @@ struct TipPresetSettingsView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This removes saved tip history, custom presets, onboarding status, and pending shortcut state from this device. This cannot be undone.")
+            Text("This removes saved tip history, receipt photos, custom presets, onboarding status, and pending shortcut state from this device. This cannot be undone.")
         }
         .alert("Could Not Delete Data", isPresented: deletionErrorPresentation) {
             Button("OK") {
@@ -103,7 +103,7 @@ struct TipPresetSettingsView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Privacy & Data")
                         .font(.headline)
-                    Text("Delete saved tips, custom presets, and local app preferences from this device.")
+                    Text("Delete saved tips, receipt photos, custom presets, and local app preferences from this device.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -123,7 +123,7 @@ struct TipPresetSettingsView: View {
             }
             .buttonStyle(.glass)
             .disabled(storedItemCount == 0 && !hasCompletedOnboarding)
-            .accessibilityHint("Deletes saved tip history, custom presets, onboarding status, and pending shortcut state from this device.")
+            .accessibilityHint("Deletes saved tip history, receipt photos, custom presets, onboarding status, and pending shortcut state from this device.")
         }
         .settingsGlassCard(palette: palette)
     }
@@ -245,6 +245,7 @@ struct TipPresetSettingsView: View {
         do {
             try modelContext.delete(model: TipTransaction.self)
             try modelContext.delete(model: TipPreset.self)
+            try ReceiptPhotoStore.deleteAll()
             try modelContext.save()
 
             let defaults = UserDefaults.standard

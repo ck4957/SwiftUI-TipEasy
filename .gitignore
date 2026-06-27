@@ -1,0 +1,15 @@
+# Xcode build output
+build/
+DerivedData/
+*.xcarchive
+*.ipa
+
+# App Store Connect API keys and local secret files
+*.p8
+private_keys/
+.env
+.env.*
+!.env.example
+
+# macOS
+.DS_Store

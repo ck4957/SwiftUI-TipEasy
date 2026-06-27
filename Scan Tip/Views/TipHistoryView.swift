@@ -1,12 +1,14 @@
 import Charts
 import SwiftData
 import SwiftUI
+import UIKit
 
 struct TipHistoryView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.appPalette) private var palette
     @Query(sort: \TipTransaction.date, order: .reverse) private var transactions: [TipTransaction]
     @State private var searchText = ""
+    @State private var selectedReceiptPhoto: ReceiptPhotoPreview?
 
     private let currencyCode = Locale.current.currency?.identifier ?? "USD"
 
@@ -98,6 +100,9 @@ struct TipHistoryView: View {
         )
         .navigationTitle("History")
         .searchable(text: $searchText, prompt: "Try: this month, over 20%, coffee")
+        .sheet(item: $selectedReceiptPhoto) { preview in
+            ReceiptPhotoPreviewSheet(preview: preview)
+        }
     }
 
     private var summaryCards: some View {
@@ -131,6 +136,14 @@ struct TipHistoryView: View {
                     VStack(spacing: 10) {
                         ForEach(group.items) { transaction in
                             TipHistoryRow(transaction: transaction, currencyCode: currencyCode) {
+                                if let image = ReceiptPhotoStore.image(named: transaction.receiptPhotoFilename) {
+                                    selectedReceiptPhoto = ReceiptPhotoPreview(
+                                        title: transaction.restaurantName.isEmpty ? "Receipt Photo" : transaction.restaurantName,
+                                        image: image
+                                    )
+                                }
+                            } onDelete: {
+                                ReceiptPhotoStore.delete(filename: transaction.receiptPhotoFilename)
                                 withAnimation {
                                     modelContext.delete(transaction)
                                 }
@@ -315,18 +328,39 @@ private struct TipHistoryRow: View {
 
     let transaction: TipTransaction
     let currencyCode: String
+    let onShowReceipt: () -> Void
     let onDelete: () -> Void
 
     private var title: String {
         transaction.restaurantName.isEmpty ? "Saved bill" : transaction.restaurantName
     }
 
+    private var receiptImage: UIImage? {
+        ReceiptPhotoStore.image(named: transaction.receiptPhotoFilename)
+    }
+
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: "fork.knife.circle.fill")
-                .font(.title2)
-                .foregroundStyle(palette.accent)
-                .symbolRenderingMode(.hierarchical)
+            if let receiptImage {
+                Button(action: onShowReceipt) {
+                    Image(uiImage: receiptImage)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 46, height: 46)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 12)
+                                .strokeBorder(palette.stroke, lineWidth: 1)
+                        }
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("View original receipt photo")
+            } else {
+                Image(systemName: "fork.knife.circle.fill")
+                    .font(.title2)
+                    .foregroundStyle(palette.accent)
+                    .symbolRenderingMode(.hierarchical)
+            }
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(title)
@@ -355,6 +389,39 @@ private struct TipHistoryRow: View {
                 onDelete()
             } label: {
                 Label("Delete", systemImage: "trash")
+            }
+        }
+    }
+}
+
+private struct ReceiptPhotoPreview: Identifiable {
+    let id = UUID()
+    let title: String
+    let image: UIImage
+}
+
+private struct ReceiptPhotoPreviewSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    let preview: ReceiptPhotoPreview
+
+    var body: some View {
+        NavigationStack {
+            ScrollView([.vertical, .horizontal]) {
+                Image(uiImage: preview.image)
+                    .resizable()
+                    .scaledToFit()
+                    .padding()
+                    .frame(maxWidth: .infinity)
+            }
+            .background(Color.black.opacity(0.92))
+            .navigationTitle(preview.title)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
             }
         }
     }

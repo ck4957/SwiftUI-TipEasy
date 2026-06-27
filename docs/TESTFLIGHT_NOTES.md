@@ -39,7 +39,7 @@ Please focus on normal restaurant tipping flows: calculating a bill, scanning a 
 
 ## Build Notes
 
-- Bundle ID: com.chiragkular.ScanTip
+- Bundle ID: com.chiragkular.SwiftUI-TipEasy
 - Version: 1.2
-- Build: 2
+- Build: 4
 - Minimum OS: iOS 26.0

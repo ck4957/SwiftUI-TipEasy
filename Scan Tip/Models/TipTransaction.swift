@@ -10,6 +10,7 @@ final class TipTransaction: Identifiable {
     var tipPercentage: Double
     var tipAmount: Double
     var totalAmount: Double
+    var receiptPhotoFilename: String?
 
     init(
         date: Date = .now,
@@ -17,7 +18,8 @@ final class TipTransaction: Identifiable {
         billAmount: Double,
         tipPercentage: Double,
         tipAmount: Double,
-        totalAmount: Double
+        totalAmount: Double,
+        receiptPhotoFilename: String? = nil
     ) {
         self.date = date
         self.restaurantName = restaurantName
@@ -25,5 +27,6 @@ final class TipTransaction: Identifiable {
         self.tipPercentage = tipPercentage
         self.tipAmount = tipAmount
         self.totalAmount = totalAmount
+        self.receiptPhotoFilename = receiptPhotoFilename
     }
 }

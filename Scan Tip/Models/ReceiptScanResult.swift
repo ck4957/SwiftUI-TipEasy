@@ -9,6 +9,7 @@ struct ReceiptScanResult: Equatable {
     var total: Double?
     var rawText: String
     var usedAppleIntelligence: Bool
+    var receiptPhotoData: Data?
 
     static let empty = ReceiptScanResult(
         merchantName: "",
@@ -18,7 +19,8 @@ struct ReceiptScanResult: Equatable {
         includedGratuity: nil,
         total: nil,
         rawText: "",
-        usedAppleIntelligence: false
+        usedAppleIntelligence: false,
+        receiptPhotoData: nil
     )
 
     var hasIncludedService: Bool {

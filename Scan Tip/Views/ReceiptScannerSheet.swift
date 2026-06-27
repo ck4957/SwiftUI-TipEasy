@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import VisionKit
 
 struct ReceiptScannerSheet: View {
@@ -7,6 +8,7 @@ struct ReceiptScannerSheet: View {
     @State private var recognizedText = ""
     @State private var scanResult = ReceiptScanResult.empty
     @State private var isAnalyzing = false
+    @State private var photoCaptureController = ReceiptPhotoCaptureController()
 
     let onDetectedResult: (ReceiptScanResult) -> Void
     private let currencyCode = Locale.current.currency?.identifier ?? "USD"
@@ -20,7 +22,10 @@ struct ReceiptScannerSheet: View {
         NavigationStack {
             ZStack(alignment: .bottom) {
                 if DataScannerViewController.isSupported, DataScannerViewController.isAvailable {
-                    ReceiptDataScannerView(recognizedText: $recognizedText)
+                    ReceiptDataScannerView(
+                        recognizedText: $recognizedText,
+                        photoCaptureController: photoCaptureController
+                    )
                         .ignoresSafeArea()
                 } else {
                     ContentUnavailableView(
@@ -68,7 +73,11 @@ struct ReceiptScannerSheet: View {
                                 "used_apple_intelligence": String(scanResult.usedAppleIntelligence)
                             ]
                         )
-                        onDetectedResult(scanResult)
+                        Task {
+                            var result = scanResult
+                            result.receiptPhotoData = await photoCaptureController.captureJPEGData()
+                            onDetectedResult(result)
+                        }
                     }
                 } label: {
                     Label("Use", systemImage: "checkmark")
@@ -118,6 +127,22 @@ struct ReceiptScannerSheet: View {
     }
 }
 
+@MainActor
+private final class ReceiptPhotoCaptureController {
+    weak var scanner: DataScannerViewController?
+
+    func captureJPEGData() async -> Data? {
+        guard let scanner else { return nil }
+
+        do {
+            let image = try await scanner.capturePhoto()
+            return image.jpegData(compressionQuality: 0.82)
+        } catch {
+            return nil
+        }
+    }
+}
+
 private struct ScannerTipTile: View {
     @Environment(\.appPalette) private var palette
 
@@ -143,6 +168,7 @@ private struct ScannerTipTile: View {
 
 private struct ReceiptDataScannerView: UIViewControllerRepresentable {
     @Binding var recognizedText: String
+    let photoCaptureController: ReceiptPhotoCaptureController
 
     func makeUIViewController(context: Context) -> DataScannerViewController {
         let scanner = DataScannerViewController(
@@ -155,6 +181,7 @@ private struct ReceiptDataScannerView: UIViewControllerRepresentable {
             isHighlightingEnabled: true
         )
         scanner.delegate = context.coordinator
+        photoCaptureController.scanner = scanner
         return scanner
     }
 
@@ -165,17 +192,30 @@ private struct ReceiptDataScannerView: UIViewControllerRepresentable {
 
     static func dismantleUIViewController(_ scanner: DataScannerViewController, coordinator: Coordinator) {
         scanner.stopScanning()
+        coordinator.clearScannerReference()
     }
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(recognizedText: $recognizedText)
+        Coordinator(
+            recognizedText: $recognizedText,
+            photoCaptureController: photoCaptureController
+        )
     }
 
     final class Coordinator: NSObject, DataScannerViewControllerDelegate {
         @Binding private var recognizedText: String
+        private let photoCaptureController: ReceiptPhotoCaptureController
 
-        init(recognizedText: Binding<String>) {
+        init(
+            recognizedText: Binding<String>,
+            photoCaptureController: ReceiptPhotoCaptureController
+        ) {
             _recognizedText = recognizedText
+            self.photoCaptureController = photoCaptureController
+        }
+
+        func clearScannerReference() {
+            photoCaptureController.scanner = nil
         }
 
         func dataScanner(_ dataScanner: DataScannerViewController, didAdd addedItems: [RecognizedItem], allItems: [RecognizedItem]) {

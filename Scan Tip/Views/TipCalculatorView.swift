@@ -426,12 +426,14 @@ struct TipCalculatorView: View {
     private func saveTransaction() {
         guard bill > 0 else { return }
 
+        let receiptPhotoFilename = receiptScanResult?.receiptPhotoData.flatMap { try? ReceiptPhotoStore.save($0) }
         let transaction = TipTransaction(
             restaurantName: restaurantName.trimmingCharacters(in: .whitespacesAndNewlines),
             billAmount: bill,
             tipPercentage: computedTipPercentage,
             tipAmount: computedTipAmount,
-            totalAmount: totalAmount
+            totalAmount: totalAmount,
+            receiptPhotoFilename: receiptPhotoFilename
         )
         modelContext.insert(transaction)
         AnalyticsService.track(

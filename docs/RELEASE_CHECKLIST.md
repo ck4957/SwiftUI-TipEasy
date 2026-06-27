@@ -4,9 +4,9 @@ Status: NEEDS_INPUT
 
 ## Build And Project
 
-- [x] Bundle identifier documented: `com.chiragkular.ScanTip`
+- [x] Bundle identifier documented: `com.chiragkular.SwiftUI-TipEasy`
 - [x] Version documented: `1.2`
-- [x] Build number documented: `2`
+- [x] Build number documented: `4`
 - [x] Target device families documented: iPhone and iPad
 - [ ] Version bump confirmed for release
 - [ ] Build number bump confirmed for release

@@ -5,9 +5,9 @@ Status: NEEDS_INPUT
 ## App Identity
 
 - App name: Scan Tip
-- Bundle ID: com.chiragkular.ScanTip
+- Bundle ID: com.chiragkular.SwiftUI-TipEasy
 - Version: 1.2
-- Build: 2
+- Build: 4
 - Platforms: iPhone, iPad
 - Minimum OS: iOS 26.0
 - Primary category: Food & Drink

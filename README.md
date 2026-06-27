@@ -1,49 +1,131 @@
 # Scan Tip
 
-Scan Tip is a SwiftUI-based tip calculator app that simplifies calculating tips. It offers a user-friendly interface with a slider, preset buttons, and a custom input field, all while persisting custom settings.
+Scan Tip is a SwiftUI tip calculator for iPhone and iPad. It helps people calculate restaurant tips, scan receipts, save dining history, and customize their preferred tip presets.
 
-## Project Structure
+The App Store listing can use the **Scan Tip** name, but the existing production bundle identifier remains:
 
-- **SwiftUI_ScanTipApp.swift**: Entry point of the application, setting up the main app structure and initializing the ContentView. Also sets up the SwiftData ModelContainer.
-- **Views/**:
-  - **ContentView.swift**: Main view of the application, embedding the TipCalculatorView and managing navigation to the settings.
-  - **TipCalculatorView.swift**: Contains the UI elements for the tip calculator, including a slider, preset buttons (dynamically loaded from settings), and a single text field for custom tip input (percentage or amount). Handles UI updates and animations.
-  - **TipPresetSettingsView.swift**: Allows users to manage custom tip percentages, adding, deleting, and modifying presets stored using SwiftData.
-  - **AddEditPresetSheet.swift**: Sheet view for adding or editing individual tip presets.
-- **Models/**:
-  - **TipPreset.swift**: SwiftData model defining a tip preset with a percentage value.
-- **Resources/Assets.xcassets**: Contains image assets and color sets for the application, supporting both light and dark modes.
+```text
+com.chiragkular.SwiftUI-TipEasy
+```
 
 ## Features
 
-- Bill amount input field.
-- Slider for selecting tip percentages.
-- Dynamically loaded preset tip percentages (customizable in settings).
-- Single input field for custom tip, togglable between percentage and dollar amount.
-- Persisted custom tip percentages using SwiftData.
-- Settings screen to manage custom tip presets.
-- Support for light and dark mode.
-- Clean and modern UI with background gradients.
+- Fast bill, tip, and total calculation.
+- Preset tip buttons plus custom percentage or dollar tip entry.
+- Receipt scanning with camera support.
+- Receipt insights for possible service charges or included gratuity.
+- Saved local tip history with summary views.
+- Customizable tip presets stored with SwiftData.
+- Settings for appearance, onboarding replay, data controls, and privacy actions.
+- App Shortcuts for common Scan Tip actions.
+- iPhone and iPad support.
+- Google Mobile Ads SDK integration.
 
-## Usage
+## App Store Links
 
-1.  Clone the repository or download the project files.
-2.  Open the project in Xcode.
-3.  Run the application on a simulator or a physical device.
-4.  Enter the bill amount.
-5.  Select a tip percentage using the slider, preset buttons, or custom input field.
-6.  View the calculated tip and total amount displayed on the screen.
-7.  Customize tip presets by tapping the gear icon to navigate to the settings screen.
+- Marketing: https://ck4957.github.io/ScanTip/
+- Support: https://ck4957.github.io/ScanTip/support.html
+- Privacy Policy: https://ck4957.github.io/ScanTip/privacy.html
 
-## Technologies Used
+The static pages live in `docs/` and are published with GitHub Pages.
 
-- SwiftUI
-- SwiftData
-- Combine (for debouncing)
+## Project Structure
+
+- `Scan Tip/SwiftUI_ScanTipApp.swift`: app entry point, Google Mobile Ads startup, and SwiftData model container.
+- `Scan Tip/Views/ContentView.swift`: tab shell for Calculator, History, and Settings.
+- `Scan Tip/Views/TipCalculatorView.swift`: main calculator, receipt scanner entry point, tip controls, save actions, and insights.
+- `Scan Tip/Views/ReceiptScannerSheet.swift`: camera/receipt scanning flow.
+- `Scan Tip/Views/TipHistoryView.swift`: saved transaction history and totals.
+- `Scan Tip/Views/TipPresetSettingsView.swift`: preset, appearance, onboarding, and local data settings.
+- `Scan Tip/Services/ReceiptIntelligenceService.swift`: receipt parsing and refinement.
+- `Scan Tip/Services/TipIntelligenceService.swift`: tip explanations and anomaly checks.
+- `Scan Tip/Services/ReceiptPhotoStore.swift`: local receipt image storage.
+- `Scan Tip/AppIntents/ScanTipIntents.swift`: App Shortcuts.
+- `docs/`: App Store metadata, privacy/support pages, release notes, and release checklists.
+- `scripts/release-upload.sh`: command-line App Store archive/export/upload helper.
+
+## Requirements
+
+- Xcode 26.x stable for App Store submission.
+- iOS 26 SDK for the current release configuration.
+- Apple Developer team access for signing.
+- App Store Connect API key for command-line upload.
+
+Use stable Xcode before building for App Store Connect:
+
+```bash
+sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+xcodebuild -version
+```
+
+## Local Development
+
+Open the workspace:
+
+```bash
+open "Scan Tip.xcworkspace"
+```
+
+Build from the command line:
+
+```bash
+xcodebuild \
+  -workspace "Scan Tip.xcworkspace" \
+  -scheme "Scan Tip" \
+  -configuration Debug \
+  -destination "platform=iOS Simulator,name=iPhone 17 Pro" \
+  build
+```
+
+## Release Automation
+
+Create a local `.env` file from the template:
+
+```bash
+cp .env.example .env
+```
+
+Fill in:
+
+```bash
+ASC_API_KEY_ID="AT4SC3TU7Y1L"
+ASC_API_ISSUER_ID="paste-issuer-id-here"
+ASC_APPLE_ID="paste-numeric-app-apple-id-here"
+ASC_API_KEY_PATH="./ApiKey_AT4SC3TU7Y1L.p8"
+```
+
+Then archive, export, validate, and upload with one command:
+
+```bash
+./scripts/release-upload.sh
+```
+
+Secrets are intentionally not committed. `.env`, `.p8` keys, local build output, archives, and IPAs are ignored by git.
+
+For more detail, see `docs/RELEASE_AUTOMATION.md`.
 
 ## Screenshots
 
-![Tip Calculator View](screenshots/IMG-1.jpeg) ![Tip Preset Settings View](screenshots/IMG-2.jpeg)
+Current screenshots are stored in `screenshots/`.
+
+![Onboarding](screenshots/Onboarding_1.png)
+![Receipt Scanner](screenshots/Scan_Receipt.PNG)
+![History](screenshots/HistoryPage.PNG)
+![Settings](screenshots/Settings.png)
+
+App Store sized screenshots are stored in `screenshots/generated/`.
+
+## Release Notes
+
+Version `1.2`, build `4`, adds receipt scanning, saved tip history, on-device tip insights, App Shortcuts, iPad support, onboarding updates, and Google Mobile Ads integration.
+
+Every new upload for the same App Store version must increment `CURRENT_PROJECT_VERSION`.
+
+## Privacy
+
+Scan Tip does not require login. Saved tip history and custom presets are stored locally on the device with SwiftData. Camera access is used for receipt scanning. Google Mobile Ads may process advertising-related data depending on user settings, consent choices, and applicable law.
+
+See `docs/privacy.html` and `docs/APP_PRIVACY_MATRIX.md` for release review details.
 
 ## License
 
