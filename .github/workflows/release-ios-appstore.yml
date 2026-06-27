@@ -25,7 +25,6 @@ jobs:
       SDK: iphoneos
       DESTINATION: generic/platform=iOS
       ASC_API_KEY_PATH: ${{ github.workspace }}/private_keys/AuthKey_${{ secrets.ASC_API_KEY_ID }}.p8
-      SIGNING_CERTIFICATE: Apple Distribution
       HAS_APPSTORE_PROVISIONING_PROFILE: ${{ secrets.APPSTORE_PROVISIONING_PROFILE_BASE64 != '' }}
 
     steps:
