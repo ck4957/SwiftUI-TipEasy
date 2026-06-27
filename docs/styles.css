@@ -131,7 +131,7 @@ p {
 
 .screenshot-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 18px;
   align-items: start;
   margin-top: 24px;
@@ -139,11 +139,15 @@ p {
 
 figure {
   margin: 0;
+  min-width: 0;
 }
 
 .screenshot-grid img {
   display: block;
-  width: 100%;
+  width: min(100%, 180px);
+  max-height: 392px;
+  margin: 0 auto;
+  object-fit: contain;
   border: 1px solid var(--line);
   border-radius: 22px;
   background: var(--panel);
