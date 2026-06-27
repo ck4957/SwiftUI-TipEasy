@@ -25,6 +25,8 @@ jobs:
       SDK: iphoneos
       DESTINATION: generic/platform=iOS
       ASC_API_KEY_PATH: ${{ github.workspace }}/private_keys/AuthKey_${{ secrets.ASC_API_KEY_ID }}.p8
+      ASC_API_KEY_SUBJECT: user
+      API_PRIVATE_KEYS_DIR: ${{ github.workspace }}/private_keys
       HAS_APPSTORE_PROVISIONING_PROFILE: ${{ secrets.APPSTORE_PROVISIONING_PROFILE_BASE64 != '' }}
 
     steps:
@@ -47,8 +49,20 @@ jobs:
           mkdir -p private_keys
           printf '%s\n' "$ASC_API_KEY_P8" | perl -pe 's/\\n/\n/g' > "$ASC_API_KEY_PATH"
           chmod 600 "$ASC_API_KEY_PATH"
+          mkdir -p "$HOME/.appstoreconnect/private_keys"
+          cp "$ASC_API_KEY_PATH" "$HOME/.appstoreconnect/private_keys/$(basename "$ASC_API_KEY_PATH")"
+          chmod 600 "$HOME/.appstoreconnect/private_keys/$(basename "$ASC_API_KEY_PATH")"
           grep -q -- '-----BEGIN PRIVATE KEY-----' "$ASC_API_KEY_PATH"
           grep -q -- '-----END PRIVATE KEY-----' "$ASC_API_KEY_PATH"
+
+      - name: Verify App Store Connect API authentication
+        run: |
+          set -euo pipefail
+          xcrun altool --list-apps \
+            --api-key "$ASC_API_KEY_ID" \
+            --api-issuer "$ASC_API_ISSUER_ID" \
+            --api-key-subject "$ASC_API_KEY_SUBJECT" \
+            --p8-file-path "$ASC_API_KEY_PATH" >/dev/null
 
       - name: Install signing certificate
         env:

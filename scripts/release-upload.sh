@@ -49,6 +49,15 @@ authentication_args=(
   -authenticationKeyIssuerID "$ASC_API_ISSUER_ID"
 )
 
+altool_auth_args=(
+  --api-key "$ASC_API_KEY_ID"
+  --api-issuer "$ASC_API_ISSUER_ID"
+  --p8-file-path "$ASC_API_KEY_PATH"
+)
+if [[ -n "${ASC_API_KEY_SUBJECT:-}" ]]; then
+  altool_auth_args+=(--api-key-subject "$ASC_API_KEY_SUBJECT")
+fi
+
 signing_args=()
 if [[ -n "$SIGNING_CERTIFICATE" ]]; then
   signing_args+=(CODE_SIGN_IDENTITY="$SIGNING_CERTIFICATE")
@@ -133,9 +142,7 @@ xcrun altool --validate-app \
   -f "$IPA_PATH" \
   -t ios \
   --apple-id "$ASC_APPLE_ID" \
-  --api-key "$ASC_API_KEY_ID" \
-  --api-issuer "$ASC_API_ISSUER_ID" \
-  --p8-file-path "$ASC_API_KEY_PATH"
+  "${altool_auth_args[@]}"
 
 attempt=1
 while true; do
@@ -144,9 +151,7 @@ while true; do
     -f "$IPA_PATH" \
     -t ios \
     --apple-id "$ASC_APPLE_ID" \
-    --api-key "$ASC_API_KEY_ID" \
-    --api-issuer "$ASC_API_ISSUER_ID" \
-    --p8-file-path "$ASC_API_KEY_PATH"; then
+    "${altool_auth_args[@]}"; then
     echo "Upload completed. Check App Store Connect for Processing/Ready status."
     exit 0
   fi
