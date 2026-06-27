@@ -121,6 +121,18 @@ Version `1.2`, build `4`, adds receipt scanning, saved tip history, on-device ti
 
 Every new upload for the same App Store version must increment `CURRENT_PROJECT_VERSION`.
 
+Use the helper to avoid manual project-file edits:
+
+```bash
+./scripts/bump-build-number.sh
+```
+
+Run the lightweight release gate before release commits:
+
+```bash
+./scripts/release-doctor.sh
+```
+
 ## Privacy
 
 Scan Tip does not require login. Saved tip history and custom presets are stored locally on the device with SwiftData. Camera access is used for receipt scanning. Google Mobile Ads may process advertising-related data depending on user settings, consent choices, and applicable law.

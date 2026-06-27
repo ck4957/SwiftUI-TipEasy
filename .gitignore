@@ -4,6 +4,9 @@ DerivedData/
 *.xcarchive
 *.ipa
 
+# Stale project wrapper; the real project is Scan Tip.xcodeproj.
+SwiftUI-TipEasy.xcodeproj/
+
 # App Store Connect API keys and local secret files
 *.p8
 private_keys/

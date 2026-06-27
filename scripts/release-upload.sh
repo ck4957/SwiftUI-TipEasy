@@ -11,6 +11,7 @@ ARCHIVE_PATH=${ARCHIVE_PATH:-"$PWD/build/ScanTip.xcarchive"}
 EXPORT_PATH=${EXPORT_PATH:-"$PWD/build/AppStoreExport"}
 EXPORT_OPTIONS=${EXPORT_OPTIONS:-"$PWD/ExportOptions.plist"}
 MAX_UPLOAD_ATTEMPTS=${MAX_UPLOAD_ATTEMPTS:-3}
+AUTO_INCREMENT_BUILD=${AUTO_INCREMENT_BUILD:-0}
 
 if [[ -f "$PWD/.env" ]]; then
   set -a
@@ -41,6 +42,11 @@ fi
 
 echo "Using Xcode:"
 xcodebuild -version
+
+if [[ "$AUTO_INCREMENT_BUILD" == "1" ]]; then
+  echo "Incrementing build number..."
+  "$PWD/scripts/bump-build-number.sh"
+fi
 
 echo "Cleaning previous archive/export..."
 rm -rf "$ARCHIVE_PATH" "$EXPORT_PATH"

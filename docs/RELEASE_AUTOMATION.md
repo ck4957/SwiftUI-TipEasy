@@ -44,6 +44,24 @@ The script:
 
 App Store Connect requires every upload for the same version to use a higher build number. If upload fails with `previousBundleVersion`, increment `CURRENT_PROJECT_VERSION` in the Xcode project and rerun the script.
 
+Use the helper instead of editing the project file by hand:
+
+```bash
+./scripts/bump-build-number.sh
+```
+
+To choose a specific next build number:
+
+```bash
+./scripts/bump-build-number.sh 5
+```
+
+To have the upload script increment the build number before archiving:
+
+```bash
+AUTO_INCREMENT_BUILD=1 ./scripts/release-upload.sh
+```
+
 The bundle identifier for this existing App Store listing must remain:
 
 ```text
@@ -56,4 +74,20 @@ The app display name can still be `Scan Tip`.
 
 The safest hosted option is Xcode Cloud because Apple manages signing and App Store Connect authentication. Use it when you want no private key material in GitHub or local scripts.
 
-For GitHub Actions, store the API key, issuer ID, numeric Apple ID, and certificate/profile material as GitHub encrypted secrets. Never commit `.p8`, `.mobileprovision`, `.cer`, `.p12`, or passwords.
+This repo also includes a GitHub Actions CI gate at `.github/workflows/ci.yml`. It installs pods, runs `./scripts/release-doctor.sh`, and builds the app without signing. This is useful for pull requests and normal pushes because it requires no App Store Connect secrets.
+
+For GitHub Actions release uploads, store the API key, issuer ID, numeric Apple ID, and certificate/profile material as GitHub encrypted secrets. Never commit `.p8`, `.mobileprovision`, `.cer`, `.p12`, or passwords.
+
+## Release Doctor
+
+Run the lightweight local gate before release commits:
+
+```bash
+./scripts/release-doctor.sh
+```
+
+By default it checks release docs and project version consistency. Include a local build check when Xcode is ready:
+
+```bash
+RUN_XCODEBUILD=1 ./scripts/release-doctor.sh
+```
