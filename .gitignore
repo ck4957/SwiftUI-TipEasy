@@ -9,6 +9,11 @@ SwiftUI-TipEasy.xcodeproj/
 
 # App Store Connect API keys and local secret files
 *.p8
+*.cer
+*.csr
+*.mobileprovision
+*.provisionprofile
+*.p12
 private_keys/
 .env
 .env.*
