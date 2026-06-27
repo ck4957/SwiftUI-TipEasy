@@ -107,10 +107,14 @@ For more detail, see `docs/RELEASE_AUTOMATION.md`.
 
 Current screenshots are stored in `screenshots/`.
 
-![Onboarding](screenshots/Onboarding_1.png)
-![Receipt Scanner](screenshots/Scan_Receipt.PNG)
-![History](screenshots/HistoryPage.PNG)
-![Settings](screenshots/Settings.png)
+<table>
+  <tr>
+    <td align="center"><img src="screenshots/Onboarding_1.png" width="160" alt="Onboarding"><br><sub>Onboarding</sub></td>
+    <td align="center"><img src="screenshots/Scan_Receipt.PNG" width="160" alt="Receipt Scanner"><br><sub>Receipt Scanner</sub></td>
+    <td align="center"><img src="screenshots/HistoryPage.PNG" width="160" alt="History"><br><sub>History</sub></td>
+    <td align="center"><img src="screenshots/Settings.png" width="160" alt="Settings"><br><sub>Settings</sub></td>
+  </tr>
+</table>
 
 App Store sized screenshots are stored in `screenshots/generated/`.
 
