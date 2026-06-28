@@ -15,6 +15,11 @@ enum AnalyticsEvent: String {
     case presetEdited = "preset_edited"
     case presetDeleted = "preset_deleted"
     case localDataDeleted = "local_data_deleted"
+    case proPaywallViewed = "pro_paywall_viewed"
+    case proGateTapped = "pro_gate_tapped"
+    case proPurchaseCompleted = "pro_purchase_completed"
+    case proPurchaseFailed = "pro_purchase_failed"
+    case proPurchaseRestored = "pro_purchase_restored"
 }
 
 enum AnalyticsService {

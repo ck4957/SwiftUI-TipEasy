@@ -114,4 +114,6 @@ private enum AppTab: Hashable {
 
 #Preview {
     ContentView()
+        .modelContainer(for: [TipPreset.self, TipTransaction.self], inMemory: true)
+        .environment(PurchaseManager())
 }

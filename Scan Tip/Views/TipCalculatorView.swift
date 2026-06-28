@@ -19,6 +19,7 @@ extension CGFloat {
 struct TipCalculatorView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.appPalette) private var palette
+    @Environment(PurchaseManager.self) private var purchaseManager
     @AppStorage("pendingOpenScanner") private var pendingOpenScanner = false
     @Query(sort: \TipPreset.percentage) private var tipPresets: [TipPreset]
     @Query(sort: \TipTransaction.date, order: .reverse) private var transactions: [TipTransaction]
@@ -31,6 +32,7 @@ struct TipCalculatorView: View {
     @State private var showingScanner = false
     @State private var showingSavedConfirmation = false
     @State private var receiptScanResult: ReceiptScanResult?
+    @State private var proUpgradeRequest: ProUpgradeRequest?
     @FocusState private var focusedInput: CalculatorInput?
 
     private let defaultPresets: [Double] = [0.15, 0.18, 0.20, 0.25]
@@ -113,8 +115,7 @@ struct TipCalculatorView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    AnalyticsService.track(.receiptScanStarted)
-                    showingScanner = true
+                    openScanner(source: "toolbar")
                 } label: {
                     Image(systemName: "camera.viewfinder")
                         .symbolRenderingMode(.hierarchical)
@@ -153,6 +154,9 @@ struct TipCalculatorView: View {
                 showingScanner = false
             }
         }
+        .sheet(item: $proUpgradeRequest) { request in
+            ProUpgradeView(source: request.source)
+        }
         .sensoryFeedback(.success, trigger: showingSavedConfirmation)
         .alert("Saved to History", isPresented: $showingSavedConfirmation) {
             Button("Done", role: .cancel) {}
@@ -162,8 +166,7 @@ struct TipCalculatorView: View {
         .onAppear {
             if pendingOpenScanner {
                 pendingOpenScanner = false
-                AnalyticsService.track(.receiptScanStarted, properties: ["source": "app_intent"])
-                showingScanner = true
+                openScanner(source: "app_intent")
             }
         }
     }
@@ -193,10 +196,9 @@ struct TipCalculatorView: View {
                 }
                 Spacer()
                 Button {
-                    AnalyticsService.track(.receiptScanStarted)
-                    showingScanner = true
+                    openScanner(source: "hero")
                 } label: {
-                    Label("Scan", systemImage: "camera.viewfinder")
+                    Label(purchaseManager.isProUnlocked ? "Scan" : "Pro Scan", systemImage: "camera.viewfinder")
                         .labelStyle(.titleAndIcon)
                 }
                 .buttonStyle(.glass)
@@ -376,7 +378,7 @@ struct TipCalculatorView: View {
             Button {
                 saveTransaction()
             } label: {
-                Label("Save", systemImage: "tray.and.arrow.down")
+                Label(freeHistoryLimitReached ? "Unlock Save" : "Save", systemImage: "tray.and.arrow.down")
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.glassProminent)
@@ -425,6 +427,10 @@ struct TipCalculatorView: View {
 
     private func saveTransaction() {
         guard bill > 0 else { return }
+        guard purchaseManager.isProUnlocked || !freeHistoryLimitReached else {
+            showProUpgrade(source: "save_limit")
+            return
+        }
 
         let receiptPhotoFilename = receiptScanResult?.receiptPhotoData.flatMap { try? ReceiptPhotoStore.save($0) }
         let transaction = TipTransaction(
@@ -468,6 +474,25 @@ struct TipCalculatorView: View {
         return Double(filtered) ?? 0
     }
 
+    private var freeHistoryLimitReached: Bool {
+        !purchaseManager.isProUnlocked && transactions.count >= ProFeatureCopy.freeHistoryLimit
+    }
+
+    private func openScanner(source: String) {
+        guard purchaseManager.isProUnlocked else {
+            showProUpgrade(source: "receipt_scan_\(source)")
+            return
+        }
+
+        AnalyticsService.track(.receiptScanStarted, properties: ["source": source])
+        showingScanner = true
+    }
+
+    private func showProUpgrade(source: String) {
+        AnalyticsService.track(.proGateTapped, properties: ["source": source])
+        proUpgradeRequest = ProUpgradeRequest(source: source)
+    }
+
     private func dismissKeyboard() {
         focusedInput = nil
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
@@ -478,6 +503,11 @@ struct TipCalculatorView: View {
         case billAmount
         case customTip
     }
+}
+
+private struct ProUpgradeRequest: Identifiable {
+    let source: String
+    var id: String { source }
 }
 
 private struct InsightRow: View {
@@ -591,4 +621,5 @@ private extension View {
         TipCalculatorView()
     }
     .modelContainer(for: [TipPreset.self, TipTransaction.self], inMemory: true)
+    .environment(PurchaseManager())
 }

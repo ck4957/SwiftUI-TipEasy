@@ -4,6 +4,7 @@ import SwiftUI
 struct TipPresetSettingsView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.appPalette) private var palette
+    @Environment(PurchaseManager.self) private var purchaseManager
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @Query(sort: \TipPreset.percentage) private var tipPresets: [TipPreset]
     @Query private var transactions: [TipTransaction]
@@ -12,6 +13,7 @@ struct TipPresetSettingsView: View {
     @State private var showingDeleteDataConfirmation = false
     @State private var dataDeletionError: String?
     @State private var presetToEdit: TipPreset?
+    @State private var proUpgradeRequest: ProUpgradeRequest?
 
     private let defaultPresets: [Double] = [0.15, 0.18, 0.20, 0.25]
     private var storedItemCount: Int {
@@ -22,6 +24,7 @@ struct TipPresetSettingsView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: .spacingLarge) {
                 guideCard
+                proCard
                 introCard
                 presetCard
                 privacyCard
@@ -43,6 +46,9 @@ struct TipPresetSettingsView: View {
         .navigationTitle("Settings")
         .sheet(isPresented: $showingPresetSheet) {
             AddEditPresetSheet(presetToEdit: presetToEdit, modelContext: modelContext)
+        }
+        .sheet(item: $proUpgradeRequest) { request in
+            ProUpgradeView(source: request.source)
         }
         .confirmationDialog(
             "Delete local data?",
@@ -128,6 +134,50 @@ struct TipPresetSettingsView: View {
         .settingsGlassCard(palette: palette)
     }
 
+    private var proCard: some View {
+        VStack(alignment: .leading, spacing: .spacingMedium) {
+            HStack(alignment: .top, spacing: .spacingMedium) {
+                Image(systemName: purchaseManager.isProUnlocked ? "crown.fill" : "crown")
+                    .font(.title2)
+                    .foregroundStyle(purchaseManager.isProUnlocked ? palette.highlight : palette.accent)
+                    .frame(width: 42, height: 42)
+                    .background(palette.selectedTile, in: Circle())
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(purchaseManager.isProUnlocked ? "Scan Tip Pro Active" : "Scan Tip Pro")
+                        .font(.headline)
+                    Text(purchaseManager.isProUnlocked ? "Receipt scanning, unlimited history, Smart Check, and custom presets are unlocked." : "Upgrade once for receipt scanning, unlimited history, Smart Check, and custom presets.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Spacer()
+            }
+
+            if purchaseManager.isProUnlocked {
+                #if DEBUG
+                Button {
+                    purchaseManager.resetPreviewPro()
+                } label: {
+                    Label("Reset Preview Unlock", systemImage: "arrow.counterclockwise")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.glass)
+                #endif
+            } else {
+                Button {
+                    showProUpgrade(source: "settings")
+                } label: {
+                    Label("View Pro", systemImage: "crown")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.glassProminent)
+            }
+        }
+        .settingsGlassCard(palette: palette)
+    }
+
     private var introCard: some View {
         VStack(alignment: .leading, spacing: .spacingSmall) {
             Label("Tip Suggestions", systemImage: "slider.horizontal.3")
@@ -135,6 +185,12 @@ struct TipPresetSettingsView: View {
             Text("Customize the percentages shown on the calculator. If no custom presets exist, Scan Tip uses 15%, 18%, 20%, and 25%.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
+
+            if !purchaseManager.isProUnlocked {
+                Label("Custom presets are included with Pro.", systemImage: "crown")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(palette.accent)
+            }
         }
         .settingsGlassCard(palette: palette)
     }
@@ -146,6 +202,11 @@ struct TipPresetSettingsView: View {
                     .font(.headline)
                 Spacer()
                 Button {
+                    guard purchaseManager.isProUnlocked else {
+                        showProUpgrade(source: "custom_presets")
+                        return
+                    }
+
                     presetToEdit = nil
                     showingPresetSheet = true
                 } label: {
@@ -202,6 +263,11 @@ struct TipPresetSettingsView: View {
             Spacer()
 
             Button {
+                guard purchaseManager.isProUnlocked else {
+                    showProUpgrade(source: "edit_preset")
+                    return
+                }
+
                 presetToEdit = preset
                 showingPresetSheet = true
             } label: {
@@ -212,6 +278,11 @@ struct TipPresetSettingsView: View {
             .accessibilityLabel("Edit \(Int(preset.percentage * 100)) percent preset")
 
             Button(role: .destructive) {
+                guard purchaseManager.isProUnlocked else {
+                    showProUpgrade(source: "delete_preset")
+                    return
+                }
+
                 AnalyticsService.track(
                     .presetDeleted,
                     properties: ["tip_percent": String(Int((preset.percentage * 100).rounded()))]
@@ -262,6 +333,16 @@ struct TipPresetSettingsView: View {
             dataDeletionError = error.localizedDescription
         }
     }
+
+    private func showProUpgrade(source: String) {
+        AnalyticsService.track(.proGateTapped, properties: ["source": source])
+        proUpgradeRequest = ProUpgradeRequest(source: source)
+    }
+}
+
+private struct ProUpgradeRequest: Identifiable {
+    let source: String
+    var id: String { source }
 }
 
 struct AddEditPresetSheet: View {
@@ -357,4 +438,5 @@ private extension View {
         TipPresetSettingsView()
     }
     .modelContainer(for: [TipPreset.self, TipTransaction.self], inMemory: true)
+    .environment(PurchaseManager())
 }
