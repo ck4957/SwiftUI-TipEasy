@@ -6,14 +6,17 @@ import UIKit
 struct TipHistoryView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.appPalette) private var palette
+    @Environment(PurchaseManager.self) private var purchaseManager
     @Query(sort: \TipTransaction.date, order: .reverse) private var transactions: [TipTransaction]
     @State private var searchText = ""
     @State private var selectedReceiptPhoto: ReceiptPhotoPreview?
+    @State private var proUpgradeRequest: ProUpgradeRequest?
 
     private let currencyCode = Locale.current.currency?.identifier ?? "USD"
 
     private var visibleTransactions: [TipTransaction] {
-        HistorySearchService.filter(transactions, query: searchText)
+        let source = purchaseManager.isProUnlocked ? transactions : Array(transactions.prefix(ProFeatureCopy.freeHistoryLimit))
+        return HistorySearchService.filter(source, query: searchText)
     }
 
     private var totalSpent: Double {
@@ -66,10 +69,14 @@ struct TipHistoryView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: .spacingLarge) {
                 summaryCards
-                if !visibleTransactions.isEmpty {
+                if !purchaseManager.isProUnlocked {
+                    proHistoryCard
+                }
+                if purchaseManager.isProUnlocked && !visibleTransactions.isEmpty {
                     chartsSection
                 }
-                if let summary = TipIntelligenceService.summary(for: visibleTransactions, currencyCode: currencyCode) {
+                if purchaseManager.isProUnlocked,
+                   let summary = TipIntelligenceService.summary(for: visibleTransactions, currencyCode: currencyCode) {
                     MonthlySummaryCard(summary: summary)
                 }
 
@@ -103,11 +110,14 @@ struct TipHistoryView: View {
         .sheet(item: $selectedReceiptPhoto) { preview in
             ReceiptPhotoPreviewSheet(preview: preview)
         }
+        .sheet(item: $proUpgradeRequest) { request in
+            ProUpgradeView(source: request.source)
+        }
     }
 
     private var summaryCards: some View {
         VStack(alignment: .leading, spacing: .spacingMedium) {
-            Label("Local Totals", systemImage: "chart.bar.xaxis")
+            Label(purchaseManager.isProUnlocked ? "Local Totals" : "Recent Totals", systemImage: "chart.bar.xaxis")
                 .font(.headline)
 
             HStack(spacing: .spacingMedium) {
@@ -124,6 +134,36 @@ struct TipHistoryView: View {
             MonthlyTrendChartCard(data: monthlyChartData, currencyCode: currencyCode)
             TipDistributionChartCard(data: tipDistributionData)
         }
+    }
+
+    private var proHistoryCard: some View {
+        VStack(alignment: .leading, spacing: .spacingMedium) {
+            HStack(alignment: .top, spacing: .spacingMedium) {
+                Image(systemName: "chart.xyaxis.line")
+                    .font(.title2)
+                    .foregroundStyle(palette.highlight)
+                    .frame(width: 42, height: 42)
+                    .background(palette.selectedTile, in: Circle())
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Unlock full history")
+                        .font(.headline)
+                    Text("Free keeps your latest \(ProFeatureCopy.freeHistoryLimit) saved tips. Pro adds unlimited history, charts, summaries, and search.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+
+            Button {
+                showProUpgrade(source: "history")
+            } label: {
+                Label("View Pro", systemImage: "crown")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.glassProminent)
+        }
+        .historyGlassCard(palette: palette)
     }
 
     private var historyList: some View {
@@ -154,6 +194,16 @@ struct TipHistoryView: View {
             }
         }
     }
+
+    private func showProUpgrade(source: String) {
+        AnalyticsService.track(.proGateTapped, properties: ["source": source])
+        proUpgradeRequest = ProUpgradeRequest(source: source)
+    }
+}
+
+private struct ProUpgradeRequest: Identifiable {
+    let source: String
+    var id: String { source }
 }
 
 private struct MonthlyTrendChartCard: View {
@@ -406,12 +456,11 @@ private struct ReceiptPhotoPreviewSheet: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView([.vertical, .horizontal]) {
+            GeometryReader { proxy in
                 Image(uiImage: preview.image)
                     .resizable()
                     .scaledToFit()
-                    .padding()
-                    .frame(maxWidth: .infinity)
+                    .frame(width: proxy.size.width, height: proxy.size.height)
             }
             .background(Color.black.opacity(0.92))
             .navigationTitle(preview.title)
@@ -519,4 +568,5 @@ private extension View {
         TipHistoryView()
     }
     .modelContainer(for: [TipPreset.self, TipTransaction.self], inMemory: true)
+    .environment(PurchaseManager())
 }
