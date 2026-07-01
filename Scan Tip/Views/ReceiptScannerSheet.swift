@@ -93,7 +93,7 @@ struct ReceiptScannerSheet: View {
             }
 
             if let detectedTotal {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 92), spacing: 8)], spacing: 8) {
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 132), spacing: 8)], spacing: 8) {
                     ForEach(commonTips, id: \.self) { tip in
                         ScannerTipTile(
                             percentage: tip,
@@ -150,19 +150,45 @@ private struct ScannerTipTile: View {
     let bill: Double
     let currencyCode: String
 
+    private var tipAmount: Double {
+        bill * percentage
+    }
+
+    private var totalAmount: Double {
+        bill + tipAmount
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("\(Int(percentage * 100))%")
-                .font(.caption.weight(.bold))
-                .foregroundStyle(.secondary)
-            Text(bill * percentage, format: .currency(code: currencyCode))
-                .font(.subheadline.weight(.semibold))
-                .lineLimit(1)
-                .minimumScaleFactor(0.72)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("\(Int(percentage * 100))%")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(.secondary)
+                Spacer(minLength: 8)
+                Text(tipAmount, format: .currency(code: currencyCode))
+                    .font(.subheadline.weight(.semibold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.72)
+            }
+
+            HStack(alignment: .firstTextBaseline) {
+                Text("Total")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                Spacer(minLength: 8)
+                Text(totalAmount, format: .currency(code: currencyCode))
+                    .font(.headline.weight(.bold))
+                    .fontDesign(.rounded)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.72)
+            }
         }
-        .padding(10)
+        .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(palette.tile, in: RoundedRectangle(cornerRadius: 12))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(Int(percentage * 100)) percent tip")
+        .accessibilityValue("Tip \(tipAmount.formatted(.currency(code: currencyCode))), total \(totalAmount.formatted(.currency(code: currencyCode)))")
     }
 }
 
