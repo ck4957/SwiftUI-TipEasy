@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
+    @EnvironmentObject private var locationManager: LocationManager
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @State private var selectedTab: AppTab = .calculator
     @State private var hasTrackedAppOpen = false
@@ -48,6 +49,7 @@ struct ContentView: View {
         .onAppear {
             trackAppOpenIfNeeded()
             routePendingDestination()
+            locationManager.requestPermissionOnFirstLaunch()
         }
         .onChange(of: selectedTab) { _, newValue in
             AnalyticsService.track(.tabSelected, properties: ["tab": newValue.analyticsName])
@@ -55,6 +57,7 @@ struct ContentView: View {
         .onChange(of: scenePhase) { _, newValue in
             if newValue == .active {
                 routePendingDestination()
+                locationManager.refreshLocationIfAllowed()
             }
         }
     }
@@ -116,4 +119,5 @@ private enum AppTab: Hashable {
     ContentView()
         .modelContainer(for: [TipPreset.self, TipTransaction.self], inMemory: true)
         .environment(PurchaseManager())
+        .environmentObject(LocationManager())
 }

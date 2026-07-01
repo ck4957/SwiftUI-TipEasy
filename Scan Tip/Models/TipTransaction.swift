@@ -11,6 +11,12 @@ final class TipTransaction: Identifiable {
     var tipAmount: Double
     var totalAmount: Double
     var receiptPhotoFilename: String?
+    var locationLatitude: Double?
+    var locationLongitude: Double?
+    var locationName: String?
+    var locationLocality: String?
+    var locationAdministrativeArea: String?
+    var locationCapturedAt: Date?
 
     init(
         date: Date = .now,
@@ -19,7 +25,8 @@ final class TipTransaction: Identifiable {
         tipPercentage: Double,
         tipAmount: Double,
         totalAmount: Double,
-        receiptPhotoFilename: String? = nil
+        receiptPhotoFilename: String? = nil,
+        location: TipLocationSnapshot? = nil
     ) {
         self.date = date
         self.restaurantName = restaurantName
@@ -28,5 +35,11 @@ final class TipTransaction: Identifiable {
         self.tipAmount = tipAmount
         self.totalAmount = totalAmount
         self.receiptPhotoFilename = receiptPhotoFilename
+        self.locationLatitude = location?.latitude
+        self.locationLongitude = location?.longitude
+        self.locationName = location?.name
+        self.locationLocality = location?.locality
+        self.locationAdministrativeArea = location?.administrativeArea
+        self.locationCapturedAt = location?.capturedAt
     }
 }

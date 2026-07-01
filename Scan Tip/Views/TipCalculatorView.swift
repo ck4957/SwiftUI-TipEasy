@@ -20,6 +20,7 @@ struct TipCalculatorView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.appPalette) private var palette
     @Environment(PurchaseManager.self) private var purchaseManager
+    @EnvironmentObject private var locationManager: LocationManager
     @AppStorage("pendingOpenScanner") private var pendingOpenScanner = false
     @AppStorage(TipPresetCatalog.hiddenDefaultPresetsKey) private var hiddenDefaultPresetStorage = ""
     @Query(sort: \TipPreset.percentage) private var tipPresets: [TipPreset]
@@ -29,8 +30,9 @@ struct TipCalculatorView: View {
     @State private var billAmount: String = ""
     @State private var customTipValue: String = ""
     @State private var tipInputMode: TipInputMode = .percentage
-    @State private var selectedTipPercentage: Double = 0.18
+    @State private var selectedTipPercentage: Double = 0.15
     @State private var showingScanner = false
+    @State private var showingHistory = false
     @State private var showingSavedConfirmation = false
     @State private var receiptScanResult: ReceiptScanResult?
     @State private var proUpgradeRequest: ProUpgradeRequest?
@@ -116,15 +118,15 @@ struct TipCalculatorView: View {
         .navigationTitle("Scan Tip")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: .topBarLeading) {
                 Button {
-                    openScanner(source: "toolbar")
+                    showingHistory = true
                 } label: {
-                    Image(systemName: "camera.viewfinder")
+                    Image(systemName: "clock.arrow.circlepath")
                         .symbolRenderingMode(.hierarchical)
                 }
                 .glassEffect(.regular.interactive())
-                .accessibilityLabel("Scan receipt")
+                .accessibilityLabel("Show history")
             }
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
@@ -156,6 +158,13 @@ struct TipCalculatorView: View {
                 )
                 showingScanner = false
             }
+        }
+        .sheet(isPresented: $showingHistory) {
+            NavigationStack {
+                TipHistoryView()
+            }
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
         }
         .sheet(item: $proUpgradeRequest) { request in
             ProUpgradeView(source: request.source)
@@ -193,7 +202,7 @@ struct TipCalculatorView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Bill")
                         .font(.headline)
-                    Text("Enter the check amount.")
+                    Text("Tap to enter bill amount.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -223,7 +232,21 @@ struct TipCalculatorView: View {
                     .minimumScaleFactor(0.55)
                     .accessibilityLabel("Bill amount")
             }
-            .padding(.vertical, 4)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .frame(minHeight: 86)
+            .background(palette.field, in: RoundedRectangle(cornerRadius: .cornerRadiusLarge))
+            .overlay {
+                RoundedRectangle(cornerRadius: .cornerRadiusLarge)
+                    .strokeBorder(
+                        focusedInput == .billAmount ? palette.accent.opacity(0.65) : palette.stroke,
+                        lineWidth: focusedInput == .billAmount ? 1.5 : 1
+                    )
+            }
+            .contentShape(RoundedRectangle(cornerRadius: .cornerRadiusLarge))
+            .onTapGesture {
+                focusedInput = .billAmount
+            }
 
             TextField("Place name (optional)", text: $restaurantName)
                 .textInputAutocapitalization(.words)
@@ -442,7 +465,8 @@ struct TipCalculatorView: View {
             tipPercentage: computedTipPercentage,
             tipAmount: computedTipAmount,
             totalAmount: totalAmount,
-            receiptPhotoFilename: receiptPhotoFilename
+            receiptPhotoFilename: receiptPhotoFilename,
+            location: locationManager.latestLocation
         )
         modelContext.insert(transaction)
         AnalyticsService.track(
@@ -466,7 +490,7 @@ struct TipCalculatorView: View {
             billAmount = ""
             customTipValue = ""
             tipInputMode = .percentage
-            selectedTipPercentage = presetPercentageValues.first ?? 0.18
+            selectedTipPercentage = presetPercentageValues.contains(0.15) ? 0.15 : presetPercentageValues.first ?? 0.15
             receiptScanResult = nil
         }
     }
@@ -488,6 +512,7 @@ struct TipCalculatorView: View {
         }
 
         AnalyticsService.track(.receiptScanStarted, properties: ["source": source])
+        locationManager.refreshLocationIfAllowed()
         showingScanner = true
     }
 
@@ -625,4 +650,5 @@ private extension View {
     }
     .modelContainer(for: [TipPreset.self, TipTransaction.self], inMemory: true)
     .environment(PurchaseManager())
+    .environmentObject(LocationManager())
 }

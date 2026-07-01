@@ -40,7 +40,7 @@ Scan Tip also supports customizable tip presets, appearance themes, onboarding r
   - Web access: No general web browsing found.
   - Ads: No ad SDK found.
   - Purchases: No in-app purchase code found.
-  - Location: No active location permission found; future request mentions location/map features only.
+  - Location: When In Use permission is requested to attach local place details and map previews to saved tips.
   - Camera: Yes, camera is used for receipt scanning.
   - AI/ML: Uses Apple's FoundationModels/SystemLanguageModel on supported devices for receipt field refinement.
   - Final App Store age rating answers: NEEDS_CONFIRMATION
@@ -62,5 +62,6 @@ Scan Tip also supports customizable tip presets, appearance themes, onboarding r
 - Notes:
   - Camera access is used only to scan receipt text for bill totals and possible included service charges.
   - Saved tip presets and saved transactions are stored locally with SwiftData.
+  - If location permission is granted, saved transactions can include local place details and coordinates for the history map preview.
   - Users can delete local saved tips, custom presets, onboarding status, and pending shortcut state from Settings > Privacy & Data > Delete Local Data.
   - Production analytics provider is not connected in code; `AnalyticsService` prints in DEBUG and has a placeholder for release builds.

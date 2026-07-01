@@ -6,5 +6,7 @@
 	<string>Scan Tip</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Scan Tip uses the camera to read receipt totals and show tip suggestions.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Scan Tip uses your location while the app is open to save where a receipt or tip was captured.</string>
 </dict>
 </plist>

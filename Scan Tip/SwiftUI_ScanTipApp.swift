@@ -11,12 +11,14 @@ import SwiftUI
 @main
 struct ScanTipApp: App {
     @State private var purchaseManager = PurchaseManager()
+    @StateObject private var locationManager = LocationManager()
 
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .modelContainer(for: [TipPreset.self, TipTransaction.self])
                 .environment(purchaseManager)
+                .environmentObject(locationManager)
                 .task {
                     await purchaseManager.start()
                 }

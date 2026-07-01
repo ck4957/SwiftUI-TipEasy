@@ -138,7 +138,7 @@ Run the lightweight release gate before release commits:
 
 ## Privacy
 
-Scan Tip does not require login. Saved tip history and custom presets are stored locally on the device with SwiftData. Camera access is used for receipt scanning.
+Scan Tip does not require login. Saved tip history and custom presets are stored locally on the device with SwiftData. Camera access is used for receipt scanning, and When In Use location access can attach local place details to saved tip history when approved.
 
 See `docs/privacy.html` and `docs/APP_PRIVACY_MATRIX.md` for release review details.
 

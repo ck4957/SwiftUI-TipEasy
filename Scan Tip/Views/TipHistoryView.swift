@@ -1,4 +1,5 @@
 import Charts
+import MapKit
 import SwiftData
 import SwiftUI
 import UIKit
@@ -10,6 +11,7 @@ struct TipHistoryView: View {
     @Query(sort: \TipTransaction.date, order: .reverse) private var transactions: [TipTransaction]
     @State private var searchText = ""
     @State private var selectedReceiptPhoto: ReceiptPhotoPreview?
+    @State private var selectedTransaction: TipTransaction?
     @State private var proUpgradeRequest: ProUpgradeRequest?
 
     private let currencyCode = Locale.current.currency?.identifier ?? "USD"
@@ -110,6 +112,16 @@ struct TipHistoryView: View {
         .sheet(item: $selectedReceiptPhoto) { preview in
             ReceiptPhotoPreviewSheet(preview: preview)
         }
+        .sheet(item: $selectedTransaction) { transaction in
+            TipHistoryDetailSheet(transaction: transaction, currencyCode: currencyCode) {
+                if let image = ReceiptPhotoStore.image(named: transaction.receiptPhotoFilename) {
+                    selectedReceiptPhoto = ReceiptPhotoPreview(
+                        title: transaction.restaurantName.isEmpty ? "Receipt Photo" : transaction.restaurantName,
+                        image: image
+                    )
+                }
+            }
+        }
         .sheet(item: $proUpgradeRequest) { request in
             ProUpgradeView(source: request.source)
         }
@@ -176,6 +188,8 @@ struct TipHistoryView: View {
                     VStack(spacing: 10) {
                         ForEach(group.items) { transaction in
                             TipHistoryRow(transaction: transaction, currencyCode: currencyCode) {
+                                selectedTransaction = transaction
+                            } onShowReceipt: {
                                 if let image = ReceiptPhotoStore.image(named: transaction.receiptPhotoFilename) {
                                     selectedReceiptPhoto = ReceiptPhotoPreview(
                                         title: transaction.restaurantName.isEmpty ? "Receipt Photo" : transaction.restaurantName,
@@ -378,6 +392,7 @@ private struct TipHistoryRow: View {
 
     let transaction: TipTransaction
     let currencyCode: String
+    let onShowDetails: () -> Void
     let onShowReceipt: () -> Void
     let onDelete: () -> Void
 
@@ -419,6 +434,12 @@ private struct TipHistoryRow: View {
                 Text(transaction.date, format: .dateTime.weekday(.abbreviated).day().hour().minute())
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                if transaction.hasLocation {
+                    Label(transaction.locationDisplayName, systemImage: "mappin.and.ellipse")
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
             }
 
             Spacer()
@@ -434,13 +455,196 @@ private struct TipHistoryRow: View {
         .padding()
         .background(palette.card, in: RoundedRectangle(cornerRadius: 18))
         .glassEffect(.regular.tint(palette.glassTint).interactive(), in: .rect(cornerRadius: 18))
+        .contentShape(RoundedRectangle(cornerRadius: 18))
+        .onTapGesture(perform: onShowDetails)
         .contextMenu {
+            Button {
+                onShowDetails()
+            } label: {
+                Label("View Details", systemImage: "info.circle")
+            }
+
             Button(role: .destructive) {
                 onDelete()
             } label: {
                 Label("Delete", systemImage: "trash")
             }
         }
+    }
+}
+
+private struct TipHistoryDetailSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.appPalette) private var palette
+
+    let transaction: TipTransaction
+    let currencyCode: String
+    let onShowReceipt: () -> Void
+
+    private var title: String {
+        transaction.restaurantName.isEmpty ? "Saved bill" : transaction.restaurantName
+    }
+
+    private var receiptImage: UIImage? {
+        ReceiptPhotoStore.image(named: transaction.receiptPhotoFilename)
+    }
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: .spacingLarge) {
+                    receiptHeader
+                    detailGrid
+                    locationPreview
+                }
+                .padding()
+            }
+            .background(
+                LinearGradient(
+                    colors: [palette.backgroundTop, palette.backgroundBottom],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
+            )
+            .navigationTitle(title)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+
+    private var receiptHeader: some View {
+        VStack(alignment: .leading, spacing: .spacingMedium) {
+            if let receiptImage {
+                Button(action: onShowReceipt) {
+                    Image(uiImage: receiptImage)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 210)
+                        .clipShape(RoundedRectangle(cornerRadius: .cornerRadiusLarge))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: .cornerRadiusLarge)
+                                .strokeBorder(palette.stroke, lineWidth: 1)
+                        }
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("View original receipt photo")
+            } else {
+                Image(systemName: "fork.knife.circle.fill")
+                    .font(.system(size: 52))
+                    .foregroundStyle(palette.accent)
+                    .symbolRenderingMode(.hierarchical)
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.title2.weight(.bold))
+                Text(transaction.date, format: .dateTime.weekday(.wide).month().day().year().hour().minute())
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .historyGlassCard(palette: palette)
+    }
+
+    private var detailGrid: some View {
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 132), spacing: 10)], spacing: 10) {
+            TipDetailTile(title: "Tip Amount", value: transaction.tipAmount.formatted(.currency(code: currencyCode)))
+            TipDetailTile(title: "Tip", value: transaction.tipPercentage.formatted(.percent.precision(.fractionLength(0))))
+            TipDetailTile(title: "Total Bill", value: transaction.totalAmount.formatted(.currency(code: currencyCode)))
+            TipDetailTile(title: "Initial Total", value: transaction.billAmount.formatted(.currency(code: currencyCode)))
+            TipDetailTile(title: "Place", value: title)
+            TipDetailTile(title: "Location", value: transaction.hasLocation ? transaction.locationDisplayName : "Not saved")
+        }
+        .historyGlassCard(palette: palette)
+    }
+
+    @ViewBuilder
+    private var locationPreview: some View {
+        if let coordinate = transaction.locationCoordinate {
+            VStack(alignment: .leading, spacing: .spacingMedium) {
+                Label(transaction.locationDisplayName, systemImage: "mappin.and.ellipse")
+                    .font(.headline)
+
+                Button {
+                    openInAppleMaps(coordinate)
+                } label: {
+                    ZStack(alignment: .bottom) {
+                        Map(initialPosition: .region(transaction.mapRegion)) {
+                            Marker(transaction.locationDisplayName, coordinate: coordinate)
+                        }
+                        .mapControlVisibility(.hidden)
+                        .allowsHitTesting(false)
+
+                        HStack(spacing: 8) {
+                            Image(systemName: "map")
+                                .imageScale(.medium)
+                            Text("Open in Apple Maps")
+                                .font(.subheadline.weight(.semibold))
+                            Spacer(minLength: 8)
+                            Image(systemName: "arrow.up.forward.app")
+                                .imageScale(.medium)
+                        }
+                        .foregroundStyle(.primary)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 12)
+                        .frame(maxWidth: .infinity)
+                        .background(.regularMaterial)
+                    }
+                    .frame(height: 180)
+                    .clipShape(RoundedRectangle(cornerRadius: .cornerRadiusLarge))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: .cornerRadiusLarge)
+                            .strokeBorder(palette.stroke, lineWidth: 1)
+                    }
+                    .contentShape(RoundedRectangle(cornerRadius: .cornerRadiusLarge))
+                }
+                .buttonStyle(.plain)
+                .contentShape(RoundedRectangle(cornerRadius: .cornerRadiusLarge))
+                .accessibilityLabel("Open saved tip location in Apple Maps")
+                .accessibilityHint("Opens Apple Maps to this saved location.")
+            }
+            .historyGlassCard(palette: palette)
+        }
+    }
+
+    private func openInAppleMaps(_ coordinate: CLLocationCoordinate2D) {
+        let location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+        let mapItem = MKMapItem(location: location, address: nil)
+        mapItem.name = transaction.locationDisplayName
+        mapItem.openInMaps(launchOptions: [
+            MKLaunchOptionsMapCenterKey: NSValue(mkCoordinate: coordinate),
+            MKLaunchOptionsMapSpanKey: NSValue(mkCoordinateSpan: transaction.mapRegion.span)
+        ])
+    }
+}
+
+private struct TipDetailTile: View {
+    @Environment(\.appPalette) private var palette
+
+    let title: String
+    let value: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+            Text(value)
+                .font(.headline.weight(.semibold))
+                .lineLimit(2)
+                .minimumScaleFactor(0.72)
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
+        .background(palette.tile, in: RoundedRectangle(cornerRadius: 14))
     }
 }
 
@@ -560,6 +764,34 @@ private extension View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(palette.card, in: RoundedRectangle(cornerRadius: .cornerRadiusLarge))
             .glassEffect(.regular.tint(palette.glassTint), in: .rect(cornerRadius: .cornerRadiusLarge))
+    }
+}
+
+private extension TipTransaction {
+    var hasLocation: Bool {
+        locationLatitude != nil && locationLongitude != nil
+    }
+
+    var locationCoordinate: CLLocationCoordinate2D? {
+        guard let locationLatitude, let locationLongitude else { return nil }
+        return CLLocationCoordinate2D(latitude: locationLatitude, longitude: locationLongitude)
+    }
+
+    var locationDisplayName: String {
+        if let locationName, !locationName.isEmpty {
+            return locationName
+        }
+
+        let components = [locationLocality, locationAdministrativeArea]
+            .compactMap { $0?.isEmpty == false ? $0 : nil }
+        return components.isEmpty ? "Saved location" : components.joined(separator: ", ")
+    }
+
+    var mapRegion: MKCoordinateRegion {
+        MKCoordinateRegion(
+            center: locationCoordinate ?? CLLocationCoordinate2D(latitude: 0, longitude: 0),
+            span: MKCoordinateSpan(latitudeDelta: 0.008, longitudeDelta: 0.008)
+        )
     }
 }
 
