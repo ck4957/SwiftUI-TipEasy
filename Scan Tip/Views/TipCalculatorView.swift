@@ -21,6 +21,7 @@ struct TipCalculatorView: View {
     @Environment(\.appPalette) private var palette
     @Environment(PurchaseManager.self) private var purchaseManager
     @AppStorage("pendingOpenScanner") private var pendingOpenScanner = false
+    @AppStorage(TipPresetCatalog.hiddenDefaultPresetsKey) private var hiddenDefaultPresetStorage = ""
     @Query(sort: \TipPreset.percentage) private var tipPresets: [TipPreset]
     @Query(sort: \TipTransaction.date, order: .reverse) private var transactions: [TipTransaction]
 
@@ -35,7 +36,6 @@ struct TipCalculatorView: View {
     @State private var proUpgradeRequest: ProUpgradeRequest?
     @FocusState private var focusedInput: CalculatorInput?
 
-    private let defaultPresets: [Double] = [0.15, 0.18, 0.20, 0.25]
     private let currencyCode = Locale.current.currency?.identifier ?? "USD"
 
     private var bill: Double {
@@ -72,7 +72,10 @@ struct TipCalculatorView: View {
     }
 
     private var presetPercentageValues: [Double] {
-        tipPresets.isEmpty ? defaultPresets : tipPresets.map(\.percentage)
+        TipPresetCatalog.activePercentages(
+            customPercentages: tipPresets.map(\.percentage),
+            hiddenDefaultStorage: hiddenDefaultPresetStorage
+        )
     }
 
     private var tipExplanation: TipInsight? {

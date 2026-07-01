@@ -6,18 +6,24 @@ struct TipPresetSettingsView: View {
     @Environment(\.appPalette) private var palette
     @Environment(PurchaseManager.self) private var purchaseManager
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    @AppStorage(TipPresetCatalog.hiddenDefaultPresetsKey) private var hiddenDefaultPresetStorage = ""
     @Query(sort: \TipPreset.percentage) private var tipPresets: [TipPreset]
     @Query private var transactions: [TipTransaction]
 
-    @State private var showingPresetSheet = false
+    @State private var showingPresetManager = false
     @State private var showingDeleteDataConfirmation = false
     @State private var dataDeletionError: String?
-    @State private var presetToEdit: TipPreset?
     @State private var proUpgradeRequest: ProUpgradeRequest?
 
-    private let defaultPresets: [Double] = [0.15, 0.18, 0.20, 0.25]
     private var storedItemCount: Int {
-        tipPresets.count + transactions.count
+        tipPresets.count + transactions.count + TipPresetCatalog.hiddenDefaultBasisPoints(from: hiddenDefaultPresetStorage).count
+    }
+
+    private var activePresetValues: [Double] {
+        TipPresetCatalog.activePercentages(
+            customPercentages: tipPresets.map(\.percentage),
+            hiddenDefaultStorage: hiddenDefaultPresetStorage
+        )
     }
 
     var body: some View {
@@ -44,8 +50,8 @@ struct TipPresetSettingsView: View {
         )
         .tint(palette.accent)
         .navigationTitle("Settings")
-        .sheet(isPresented: $showingPresetSheet) {
-            AddEditPresetSheet(presetToEdit: presetToEdit, modelContext: modelContext)
+        .sheet(isPresented: $showingPresetManager) {
+            PresetManagementSheet()
         }
         .sheet(item: $proUpgradeRequest) { request in
             ProUpgradeView(source: request.source)
@@ -182,7 +188,7 @@ struct TipPresetSettingsView: View {
         VStack(alignment: .leading, spacing: .spacingSmall) {
             Label("Tip Suggestions", systemImage: "slider.horizontal.3")
                 .font(.headline)
-            Text("Customize the percentages shown on the calculator. If no custom presets exist, Scan Tip uses 15%, 18%, 20%, and 25%.")
+            Text("Customize the percentages shown on the calculator. Added presets join the built-in set and stay sorted automatically.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
@@ -207,99 +213,42 @@ struct TipPresetSettingsView: View {
                         return
                     }
 
-                    presetToEdit = nil
-                    showingPresetSheet = true
+                    showingPresetManager = true
                 } label: {
-                    Image(systemName: "plus")
+                    Image(systemName: "slider.horizontal.3")
                         .frame(width: .minimumTouchTarget, height: .minimumTouchTarget)
                 }
                 .buttonStyle(.glassProminent)
-                .accessibilityLabel("Add preset")
+                .accessibilityLabel("Manage presets")
             }
 
-            if tipPresets.isEmpty {
-                defaultPresetPreview
-            } else {
-                ForEach(tipPresets) { preset in
-                    presetRow(preset)
-                }
-            }
-        }
-        .settingsGlassCard(palette: palette)
-    }
-
-    private var defaultPresetPreview: some View {
-        VStack(alignment: .leading, spacing: .spacingMedium) {
-            Text("Default set active")
+            Text("\(activePresetValues.count) active preset\(activePresetValues.count == 1 ? "" : "s")")
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.secondary)
 
-            HStack {
-                ForEach(defaultPresets, id: \.self) { percentage in
-                    Text("\(Int(percentage * 100))%")
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 72), spacing: 10)], spacing: 10) {
+                ForEach(activePresetValues, id: \.self) { percentage in
+                    Text("\(Int((percentage * 100).rounded()))%")
                         .font(.headline.weight(.semibold))
-                        .frame(maxWidth: .infinity, minHeight: 52)
+                        .frame(maxWidth: .infinity, minHeight: 48)
                         .background(palette.tile, in: RoundedRectangle(cornerRadius: 14))
                 }
             }
-        }
-    }
-
-    private func presetRow(_ preset: TipPreset) -> some View {
-        HStack(spacing: .spacingMedium) {
-            Text("\(Int(preset.percentage * 100))%")
-                .font(.title3.weight(.bold))
-                .frame(width: 76, height: 56)
-                .background(palette.selectedTile, in: RoundedRectangle(cornerRadius: 16))
-
-            VStack(alignment: .leading, spacing: 3) {
-                Text("Quick option")
-                    .font(.headline)
-                Text("Shown on the calculator")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            Spacer()
 
             Button {
                 guard purchaseManager.isProUnlocked else {
-                    showProUpgrade(source: "edit_preset")
+                    showProUpgrade(source: "manage_presets")
                     return
                 }
 
-                presetToEdit = preset
-                showingPresetSheet = true
+                showingPresetManager = true
             } label: {
-                Image(systemName: "pencil")
-                    .frame(width: .minimumTouchTarget, height: .minimumTouchTarget)
+                Label("Manage Presets", systemImage: "slider.horizontal.3")
+                    .frame(maxWidth: .infinity)
             }
             .buttonStyle(.glass)
-            .accessibilityLabel("Edit \(Int(preset.percentage * 100)) percent preset")
-
-            Button(role: .destructive) {
-                guard purchaseManager.isProUnlocked else {
-                    showProUpgrade(source: "delete_preset")
-                    return
-                }
-
-                AnalyticsService.track(
-                    .presetDeleted,
-                    properties: ["tip_percent": String(Int((preset.percentage * 100).rounded()))]
-                )
-                withAnimation {
-                    modelContext.delete(preset)
-                }
-            } label: {
-                Image(systemName: "trash")
-                    .frame(width: .minimumTouchTarget, height: .minimumTouchTarget)
-            }
-            .buttonStyle(.glass)
-            .accessibilityLabel("Delete \(Int(preset.percentage * 100)) percent preset")
         }
-        .padding()
-        .background(palette.card, in: RoundedRectangle(cornerRadius: 18))
-        .glassEffect(.regular.tint(palette.glassTint), in: .rect(cornerRadius: 18))
+        .settingsGlassCard(palette: palette)
     }
 
     private var deletionErrorPresentation: Binding<Bool> {
@@ -324,9 +273,11 @@ struct TipPresetSettingsView: View {
                 "hasCompletedOnboarding",
                 "pendingOpenScanner",
                 "pendingScanTipDestination",
-                "pendingScanTipTransactionID"
+                "pendingScanTipTransactionID",
+                TipPresetCatalog.hiddenDefaultPresetsKey
             ].forEach(defaults.removeObject(forKey:))
 
+            hiddenDefaultPresetStorage = ""
             hasCompletedOnboarding = false
             AnalyticsService.track(.localDataDeleted)
         } catch {
@@ -345,12 +296,196 @@ private struct ProUpgradeRequest: Identifiable {
     var id: String { source }
 }
 
+struct PresetManagementSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.appPalette) private var palette
+    @AppStorage(TipPresetCatalog.hiddenDefaultPresetsKey) private var hiddenDefaultPresetStorage = ""
+    @Query(sort: \TipPreset.percentage) private var tipPresets: [TipPreset]
+
+    @State private var presentedSheet: PresetSheet?
+
+    private var displayItems: [TipPresetDisplayItem] {
+        let hiddenDefaults = TipPresetCatalog.hiddenDefaultBasisPoints(from: hiddenDefaultPresetStorage)
+        let customBasisPoints = Set(tipPresets.map { TipPresetCatalog.basisPoints(for: $0.percentage) })
+
+        let builtInItems = TipPresetCatalog.defaultPercentages.compactMap { percentage -> TipPresetDisplayItem? in
+            let basisPoints = TipPresetCatalog.basisPoints(for: percentage)
+            guard !hiddenDefaults.contains(basisPoints), !customBasisPoints.contains(basisPoints) else {
+                return nil
+            }
+
+            return TipPresetDisplayItem(percentage: percentage, source: .builtIn)
+        }
+
+        let customItems = tipPresets.map { preset in
+            TipPresetDisplayItem(percentage: preset.percentage, source: .custom(preset))
+        }
+
+        return (builtInItems + customItems).sorted {
+            TipPresetCatalog.basisPoints(for: $0.percentage) < TipPresetCatalog.basisPoints(for: $1.percentage)
+        }
+    }
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section {
+                    ForEach(displayItems) { item in
+                        PresetManagementRow(item: item) {
+                            edit(item)
+                        } onDelete: {
+                            delete(item)
+                        }
+                    }
+                } header: {
+                    Text("Active")
+                } footer: {
+                    Text("Built-in and custom presets appear together on the calculator in ascending order.")
+                }
+            }
+            .scrollContentBackground(.hidden)
+            .background(backgroundGradient)
+            .navigationTitle("Manage Presets")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        presentedSheet = .add
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                    .accessibilityLabel("Add preset")
+                }
+            }
+            .sheet(item: $presentedSheet) { sheet in
+                switch sheet {
+                case .add:
+                    AddEditPresetSheet(presetToEdit: nil, hiddenDefaultPresetStorage: $hiddenDefaultPresetStorage)
+                case .edit(let preset):
+                    AddEditPresetSheet(presetToEdit: preset, hiddenDefaultPresetStorage: $hiddenDefaultPresetStorage)
+                }
+            }
+        }
+        .tint(palette.accent)
+    }
+
+    private var backgroundGradient: some View {
+        LinearGradient(
+            colors: [
+                palette.backgroundTop,
+                palette.backgroundBottom
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+        .ignoresSafeArea()
+    }
+
+    private func edit(_ item: TipPresetDisplayItem) {
+        guard case .custom(let preset) = item.source else { return }
+        presentedSheet = .edit(preset)
+    }
+
+    private func delete(_ item: TipPresetDisplayItem) {
+        switch item.source {
+        case .builtIn:
+            var hiddenDefaults = TipPresetCatalog.hiddenDefaultBasisPoints(from: hiddenDefaultPresetStorage)
+            hiddenDefaults.insert(TipPresetCatalog.basisPoints(for: item.percentage))
+            hiddenDefaultPresetStorage = TipPresetCatalog.storageString(from: hiddenDefaults)
+        case .custom(let preset):
+            modelContext.delete(preset)
+        }
+
+        AnalyticsService.track(
+            .presetDeleted,
+            properties: [
+                "tip_percent": String(Int((item.percentage * 100).rounded())),
+                "source": item.sourceLabel.lowercased()
+            ]
+        )
+    }
+}
+
+private enum PresetSheet: Identifiable {
+    case add
+    case edit(TipPreset)
+
+    var id: String {
+        switch self {
+        case .add:
+            "add"
+        case .edit(let preset):
+            "edit-\(preset.id.uuidString)"
+        }
+    }
+}
+
+private struct PresetManagementRow: View {
+    @Environment(\.appPalette) private var palette
+
+    let item: TipPresetDisplayItem
+    let onEdit: () -> Void
+    let onDelete: () -> Void
+
+    private var canEdit: Bool {
+        if case .custom = item.source {
+            return true
+        }
+        return false
+    }
+
+    var body: some View {
+        HStack(spacing: .spacingMedium) {
+            Text("\(Int((item.percentage * 100).rounded()))%")
+                .font(.title3.weight(.bold))
+                .fontDesign(.rounded)
+                .frame(width: 76, height: 54)
+                .background(palette.selectedTile, in: RoundedRectangle(cornerRadius: 14))
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(item.sourceLabel)
+                    .font(.headline)
+                Text("Shown on the calculator")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+
+            if canEdit {
+                Button(action: onEdit) {
+                    Image(systemName: "pencil")
+                        .frame(width: .minimumTouchTarget, height: .minimumTouchTarget)
+                }
+                .buttonStyle(.borderless)
+                .accessibilityLabel("Edit \(Int((item.percentage * 100).rounded())) percent preset")
+            }
+
+            Button(role: .destructive, action: onDelete) {
+                Image(systemName: "trash")
+                    .frame(width: .minimumTouchTarget, height: .minimumTouchTarget)
+            }
+            .buttonStyle(.borderless)
+            .accessibilityLabel("Delete \(Int((item.percentage * 100).rounded())) percent preset")
+        }
+        .padding(.vertical, 4)
+    }
+}
+
 struct AddEditPresetSheet: View {
     let presetToEdit: TipPreset?
-    var modelContext: ModelContext
 
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
     @Environment(\.appPalette) private var palette
+    @Binding var hiddenDefaultPresetStorage: String
+    @Query(sort: \TipPreset.percentage) private var tipPresets: [TipPreset]
     @State private var percentageText: String
 
     private var percentageValue: Double? {
@@ -362,9 +497,9 @@ struct AddEditPresetSheet: View {
         return percentageValue > 0 && percentageValue <= 100
     }
 
-    init(presetToEdit: TipPreset?, modelContext: ModelContext) {
+    init(presetToEdit: TipPreset?, hiddenDefaultPresetStorage: Binding<String>) {
         self.presetToEdit = presetToEdit
-        self.modelContext = modelContext
+        _hiddenDefaultPresetStorage = hiddenDefaultPresetStorage
         _percentageText = State(initialValue: presetToEdit.map { String(Int($0.percentage * 100)) } ?? "")
     }
 
@@ -404,6 +539,15 @@ struct AddEditPresetSheet: View {
     private func savePreset() {
         guard let percentageValue else { return }
         let fraction = percentageValue / 100
+        let basisPoints = TipPresetCatalog.basisPoints(for: fraction)
+        let existingCustomPreset = tipPresets.first {
+            TipPresetCatalog.basisPoints(for: $0.percentage) == basisPoints && $0.id != presetToEdit?.id
+        }
+
+        guard existingCustomPreset == nil else {
+            dismiss()
+            return
+        }
 
         if let presetToEdit {
             presetToEdit.percentage = fraction
@@ -412,7 +556,16 @@ struct AddEditPresetSheet: View {
                 properties: ["tip_percent": String(Int((fraction * 100).rounded()))]
             )
         } else {
-            modelContext.insert(TipPreset(percentage: fraction))
+            let defaultBasisPoints = Set(TipPresetCatalog.defaultPercentages.map { TipPresetCatalog.basisPoints(for: $0) })
+
+            if defaultBasisPoints.contains(basisPoints) {
+                var hiddenDefaults = TipPresetCatalog.hiddenDefaultBasisPoints(from: hiddenDefaultPresetStorage)
+                hiddenDefaults.remove(basisPoints)
+                hiddenDefaultPresetStorage = TipPresetCatalog.storageString(from: hiddenDefaults)
+            } else {
+                modelContext.insert(TipPreset(percentage: fraction))
+            }
+
             AnalyticsService.track(
                 .presetCreated,
                 properties: ["tip_percent": String(Int((fraction * 100).rounded()))]
