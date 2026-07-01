@@ -4,7 +4,7 @@ Status: NEEDS_INPUT
 
 ## Beta App Description
 
-Scan Tip is a SwiftUI tip calculator for restaurant bills. Testers can enter a bill amount, choose preset or custom tip values, scan receipts with the camera, save tip history locally, and manage custom tip presets.
+Scan Tip is a SwiftUI tip calculator for restaurant bills. Testers can enter a bill amount, choose preset or custom tip values, scan receipts with the camera, save tip history locally, manage custom tip presets, and validate the Scan Tip Pro purchase and restore experience.
 
 ## Test Focus Areas
 
@@ -12,9 +12,14 @@ Scan Tip is a SwiftUI tip calculator for restaurant bills. Testers can enter a b
 - Enter a bill amount and verify preset tip calculations.
 - Switch between custom percentage and custom dollar tip input.
 - Save a transaction and confirm it appears in History.
+- Confirm free History shows only the latest saved tips and presents the Pro upgrade prompt.
+- In a Pro-unlocked state, confirm unlimited history, monthly charts, tip distribution, summaries, and search work as expected.
 - Search History by restaurant name, amount, date phrase, or tip comparison.
-- Add, edit, and delete custom tip presets.
+- Open Scan Tip Pro from Settings, History, receipt scanning, and custom preset gates.
+- Test StoreKit purchase, cancel, pending/error messaging, successful unlock, app relaunch entitlement persistence, and restore purchase.
+- Add, edit, hide, restore, and delete built-in/custom tip presets in the preset manager.
 - Use Settings > Privacy & Data > Delete Local Data and confirm saved history/custom presets are removed.
+- Grant and deny When In Use location permission, save tips, and confirm optional local place details behave correctly.
 - Change theme and appearance settings.
 - Open the receipt scanner on a supported device and verify detected receipt totals.
 - Verify service charge or included gratuity warnings when receipt text supports it.
@@ -25,7 +30,7 @@ Scan Tip is a SwiftUI tip calculator for restaurant bills. Testers can enter a b
 
 - Receipt scanning requires a supported device/camera text recognition environment and may not work in every simulator configuration.
 - Apple Intelligence receipt refinement only runs on iOS 26+ when `SystemLanguageModel.default.isAvailable`.
-- Final ad consent/privacy behavior needs confirmation before external testing.
+- StoreKit sandbox product setup and Pro price text need confirmation before external testing.
 - iPhone README screenshots appear low resolution for App Store use and should be recaptured if needed.
 
 ## Tester Groups
@@ -41,5 +46,5 @@ Please focus on normal restaurant tipping flows: calculating a bill, scanning a 
 
 - Bundle ID: com.chiragkular.SwiftUI-TipEasy
 - Version: 1.2
-- Build: 4
+- Build: 8
 - Minimum OS: iOS 26.0

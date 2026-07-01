@@ -1,6 +1,6 @@
 # Scan Tip
 
-Scan Tip is a SwiftUI tip calculator for iPhone and iPad. It helps people calculate restaurant tips, scan receipts, save dining history, and customize their preferred tip presets.
+Scan Tip is a SwiftUI tip calculator for iPhone and iPad. It helps people calculate restaurant tips, scan receipts, save dining history, customize preferred tip presets, and unlock advanced tools with Scan Tip Pro.
 
 The App Store listing can use the **Scan Tip** name, but the existing production bundle identifier remains:
 
@@ -15,7 +15,9 @@ com.chiragkular.SwiftUI-TipEasy
 - Receipt scanning with camera support.
 - Receipt insights for possible service charges or included gratuity.
 - Saved local tip history with summary views.
-- Customizable tip presets stored with SwiftData.
+- Scan Tip Pro one-time unlock for receipt scanning, unlimited saved history, Smart Check insights, custom tip presets, and history charts.
+- Customizable tip presets stored with SwiftData, including built-in preset visibility controls.
+- Optional local place details for saved tips when When In Use location permission is granted.
 - Settings for appearance, onboarding replay, data controls, and privacy actions.
 - App Shortcuts for common Scan Tip actions.
 - iPhone and iPad support.
@@ -35,7 +37,10 @@ The static pages live in `docs/` and are published with GitHub Pages.
 - `Scan Tip/Views/TipCalculatorView.swift`: main calculator, receipt scanner entry point, tip controls, save actions, and insights.
 - `Scan Tip/Views/ReceiptScannerSheet.swift`: camera/receipt scanning flow.
 - `Scan Tip/Views/TipHistoryView.swift`: saved transaction history and totals.
-- `Scan Tip/Views/TipPresetSettingsView.swift`: preset, appearance, onboarding, and local data settings.
+- `Scan Tip/Views/ProUpgradeView.swift`: Scan Tip Pro paywall, purchase, and restore flow.
+- `Scan Tip/Views/TipPresetSettingsView.swift`: preset, appearance, onboarding, Pro, and local data settings.
+- `Scan Tip/Services/PurchaseManager.swift`: StoreKit product loading, purchase, entitlement refresh, and restore handling.
+- `Scan Tip/Services/LocationManager.swift`: permission-gated local place snapshot support for saved tips.
 - `Scan Tip/Services/ReceiptIntelligenceService.swift`: receipt parsing and refinement.
 - `Scan Tip/Services/TipIntelligenceService.swift`: tip explanations and anomaly checks.
 - `Scan Tip/Services/ReceiptPhotoStore.swift`: local receipt image storage.
@@ -120,7 +125,9 @@ App Store sized screenshots are stored in `screenshots/generated/`.
 
 ## Release Notes
 
-Version `1.2`, build `5`, adds receipt scanning, saved tip history, on-device tip insights, App Shortcuts, iPad support, and onboarding updates.
+Version `1.2`, build `8`, adds receipt scanning, saved tip history, on-device tip insights, App Shortcuts, iPad support, and onboarding updates.
+
+The next release draft is tracked in `docs/NEXT_RELEASE.md`. Current branch work adds Scan Tip Pro purchase/restore flows, Pro-gated advanced tools, richer preset management, history charts and summaries, optional local place details for saved tips, and receipt scanner suggestion tiles that show both tip and total amounts.
 
 Every new upload for the same App Store version must increment `CURRENT_PROJECT_VERSION`.
 

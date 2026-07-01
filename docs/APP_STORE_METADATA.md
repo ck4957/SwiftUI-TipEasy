@@ -16,22 +16,22 @@ Status: NEEDS_INPUT
 ## Product Page Copy
 
 - Subtitle: Tip calculator with receipt scanning
-- Promotional text: Calculate tips, scan receipts, save dining history, and customize tip presets.
+- Promotional text: Calculate tips, scan receipts, save dining history, unlock Pro tools, and customize tip presets.
 - Description:
 
 Scan Tip helps you quickly calculate restaurant tips and totals. Enter a bill amount, choose a preset tip, adjust a custom percentage or dollar amount, and see the final total instantly.
 
 The app can save local dining history, summarize recent totals, and detect possible duplicate visits. Receipt scanning uses the device camera to read receipt totals and warn when service charges or included gratuity may already be present. On supported iOS versions, Apple Intelligence can refine receipt details on device.
 
-Scan Tip also supports customizable tip presets, appearance themes, onboarding replay, local data deletion, and App Shortcuts for common calculator actions.
+Scan Tip also supports Scan Tip Pro, a one-time unlock for receipt scanning, unlimited saved history, Smart Check insights, custom tip presets, and history charts. Users can manage built-in and custom preset visibility, restore purchases, change appearance themes, replay onboarding, delete local data, and use App Shortcuts for common calculator actions.
 
 - Keywords: tip calculator, restaurant, receipt scanner, gratuity, dining, bill splitter, tip, calculator, history
-- What's new: Version 1.2 adds receipt scanning, saved tip history, on-device tip insights, App Shortcuts, iPad support, and onboarding updates. NEEDS_CONFIRMATION
+- What's new: Scan Tip now includes a Pro unlock for receipt scanning, unlimited saved history, Smart Check insights, custom tip presets, and history charts. This update also improves receipt scanner tip suggestions with final totals, adds richer preset management, and can save optional local place details with your tip history when location permission is granted. NEEDS_CONFIRMATION
 
 ## Business And Availability
 
-- Business model: Free, no ads, no in-app purchases - NEEDS_CONFIRMATION
-- Pricing: Free - NEEDS_CONFIRMATION
+- Business model: Freemium with one-time non-consumable Pro unlock - NEEDS_CONFIRMATION
+- Pricing: Free download; Pro price configured in App Store Connect - NEEDS_CONFIRMATION
 - Regions: NEEDS_CONFIRMATION
 - Release mode: manual - NEEDS_CONFIRMATION
 - Content rights: Uses original app UI and code; third-party SDK content rights need final confirmation.
@@ -39,7 +39,7 @@ Scan Tip also supports customizable tip presets, appearance themes, onboarding r
   - User-generated content: No known social/user-published content.
   - Web access: No general web browsing found.
   - Ads: No ad SDK found.
-  - Purchases: No in-app purchase code found.
+  - Purchases: StoreKit non-consumable Pro unlock in code; App Store Connect setup needs confirmation.
   - Location: When In Use permission is requested to attach local place details and map previews to saved tips.
   - Camera: Yes, camera is used for receipt scanning.
   - AI/ML: Uses Apple's FoundationModels/SystemLanguageModel on supported devices for receipt field refinement.
@@ -65,3 +65,4 @@ Scan Tip also supports customizable tip presets, appearance themes, onboarding r
   - If location permission is granted, saved transactions can include local place details and coordinates for the history map preview.
   - Users can delete local saved tips, custom presets, onboarding status, and pending shortcut state from Settings > Privacy & Data > Delete Local Data.
   - Production analytics provider is not connected in code; `AnalyticsService` prints in DEBUG and has a placeholder for release builds.
+  - Scan Tip Pro uses StoreKit product ID `com.chiragkular.SwiftUI-TipEasy.pro`; confirm matching App Store Connect in-app purchase metadata before review.

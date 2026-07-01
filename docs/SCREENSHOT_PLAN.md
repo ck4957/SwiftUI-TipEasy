@@ -15,6 +15,8 @@ Status: NEEDS_INPUT
 | `screenshots/generated/ipad-01-calculator-empty.png` | iPad | 2064 x 2752 | Generated simulator screenshot | Candidate App Store asset |
 | `screenshots/generated/iphone-6.9-01-calculator.png` | iPhone | 1320 x 2868 | Regenerated iPhone 17 Pro Max simulator screenshot | App Store-ready 6.9" asset |
 | `screenshots/generated/ipad-13-01-calculator.png` | iPad | 2064 x 2752 | Regenerated iPad Pro 13-inch simulator screenshot | App Store-ready 13" asset |
+| `screenshots/app-store/iphone-6.9/*.png` and `*.jpg` | iPhone | 1320 x 2868 | App Store screenshot set | Existing set; needs refresh for Pro and UI changes |
+| `screenshots/app-store/ipad-13/*.png` and `*.jpg` | iPad | 2064 x 2752 | App Store screenshot set | Existing set; needs refresh for Pro and UI changes |
 
 ## Required Device Families
 
@@ -24,8 +26,13 @@ Status: NEEDS_INPUT
 | iPhone | App Store Connect size set for current iPhone requirements | Receipt scanner with detected total | Scan receipts and spot included gratuity | Simulator or device | Needs asset | NEEDS_CONFIRMATION |
 | iPhone | App Store Connect size set for current iPhone requirements | Saved history summary | Track local dining totals | Simulator or device | Needs asset | NEEDS_CONFIRMATION |
 | iPhone | App Store Connect size set for current iPhone requirements | Custom presets/settings | Make tip presets your own | Simulator or device | Partial | Capture final setting screen |
+| iPhone | 6.9" display, 1320 x 2868 portrait | Scan Tip Pro upgrade | Unlock Pro tools once | Simulator or device | Needs asset | Capture after StoreKit sandbox copy/price is available |
+| iPhone | 6.9" display, 1320 x 2868 portrait | Preset management sheet | Customize built-in and custom presets | Simulator or device | Needs asset | Capture Pro-unlocked state |
+| iPhone | 6.9" display, 1320 x 2868 portrait | History charts and summaries | See dining totals over time | Simulator or device | Needs asset | Capture Pro-unlocked state with sample history |
+| iPhone | 6.9" display, 1320 x 2868 portrait | Location-aware history detail | Remember where tips were saved | Simulator or device | Needs asset | Capture only if location feature remains in release |
 | iPad | 13" display, 2064 x 2752 portrait | Calculator or dashboard layout | Scan Tip on iPad | Simulator | Captured | `screenshots/generated/ipad-13-01-calculator.png` |
 | iPad | App Store Connect size set for current iPad requirements | History or settings | Review saved tips locally | Simulator or device | Partial | Confirm final copy |
+| iPad | 13" display, 2064 x 2752 portrait | Scan Tip Pro upgrade or history charts | Unlock deeper tip history | Simulator or device | Needs asset | Capture final iPad layout |
 
 ## Required User Journeys
 
@@ -34,6 +41,8 @@ Status: NEEDS_INPUT
 - Receipt scanning: camera scanner with detected merchant/total and included service-charge warning.
 - Saved history: monthly totals, saved visits, search, and local summaries.
 - Settings: theme, appearance, onboarding replay, and custom tip presets.
+- Pro upgrade: one-time unlock, feature list, purchase button, restore button, and completed entitlement state if useful.
+- Location-aware history: saved place details and map/place preview if included in final release.
 - Ads: final screenshots should reflect whether the ad banner appears in submitted builds.
 
 ## Screenshot Copy Drafts
@@ -43,9 +52,12 @@ Status: NEEDS_INPUT
 - Catch included gratuity
 - Save local dining history
 - Customize your tip presets
+- Unlock Scan Tip Pro
+- See history trends
 
 ## Open Questions
 
 - Final iPhone and iPad screenshot device sizes are confirmed from Apple App Store Connect screenshot specifications: iPhone 6.9" and iPad 13".
 - Confirm final screenshot ordering and captions.
 - Confirm whether marketing copy overlays should be used or whether raw simulator screenshots are preferred.
+- Recapture README and GitHub Pages screenshots after the Pro/history/preset UI settles.

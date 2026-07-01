@@ -27,6 +27,9 @@ Status: NEEDS_INPUT
 - [ ] Release mode confirmed
 - [ ] Content rights confirmed
 - [ ] Age rating answers confirmed
+- [ ] Scan Tip Pro product metadata complete in App Store Connect
+- [ ] Pro price and availability confirmed
+- [ ] In-app purchase submitted with app or approved for release
 - [x] Routing app coverage file marked not applicable
 
 ## Privacy And Compliance
@@ -37,6 +40,8 @@ Status: NEEDS_INPUT
 - [ ] App Privacy questionnaire completed from confirmed data practices
 - [ ] User Messaging Platform / consent behavior confirmed
 - [ ] Camera permission rationale reviewed
+- [ ] Location permission rationale reviewed
+- [ ] StoreKit purchase/privacy treatment confirmed
 - [x] User-facing local data deletion option implemented
 - [ ] Apple Intelligence/on-device processing note reviewed
 
@@ -48,6 +53,11 @@ Status: NEEDS_INPUT
 - [x] Final iPad screenshot set captured at accepted App Store dimensions
 - [ ] Screenshot captions/copy approved
 - [ ] Ad banner screenshot treatment confirmed
+- [ ] Pro upgrade screenshot captured
+- [ ] Preset manager screenshot captured
+- [ ] History charts/summaries screenshot captured
+- [ ] Receipt scanner total suggestions screenshot captured
+- [ ] README and GitHub Pages screenshots refreshed after final UI changes
 
 ## TestFlight
 
@@ -64,6 +74,8 @@ Status: NEEDS_INPUT
 - [x] Camera permission explanation drafted
 - [ ] Support contact confirmed
 - [ ] Final review notes approved
+- [ ] StoreKit sandbox purchase and restore path verified
+- [ ] Location permission allow/deny review path verified
 - [ ] Submit-ready flag confirmed by human
 
 ## Blockers
@@ -72,6 +84,8 @@ Status: NEEDS_INPUT
 - NEEDS_CONFIRMATION: support URL and support contact
 - NEEDS_CONFIRMATION: final pricing, regions, categories, release mode, and age rating
 - NEEDS_CONFIRMATION: final App Store screenshot set
+- NEEDS_CONFIRMATION: StoreKit product setup and Pro review metadata
+- NEEDS_CONFIRMATION: final location permission timing and disclosure
 
 ## Branching And Tagging Strategy
 
@@ -79,29 +93,29 @@ Use `main` as the ongoing development branch and use GitHub tags as the permanen
 
 ### Branch Roles
 
-- `main`: Current development branch. After version 1.0 is shipped/tagged, new 1.1+ work can continue here.
-- `release/X.Y-description`: Temporary stabilization branch for a specific release, for example `release/1.1-game-packs`. Use this when a release needs final QA, metadata, screenshot, StoreKit, or TestFlight polish while `main` keeps moving.
+- `main`: Current development branch. After a version is shipped/tagged, new release work can continue here.
+- `release/X.Y-description`: Temporary stabilization branch for a specific release, for example `release/1.3-pro-polish`. Use this when a release needs final QA, metadata, screenshot, StoreKit, or TestFlight polish while `main` keeps moving.
 - `feature/short-description`: Optional experiment branch for trying ideas before deciding whether they belong in the next release.
 - `hotfix/X.Y.Z-description`: Emergency fix branch cut from the shipped tag when the App Store version needs a focused patch.
 
 ### Recommended Flow
 
-1. Finish and submit version 1.0 from the current known-good commit.
+1. Finish and submit the current version from the known-good release commit.
 2. Create an annotated Git tag for the shipped build:
 
    ```sh
-   git tag -a v1.0.0 -m "Count & Sprout 1.0.0"
-   git push origin v1.0.0
+   git tag -a v1.2.0 -m "Scan Tip 1.2.0"
+   git push origin v1.2.0
    ```
 
 3. Continue new work on `main` or short-lived `feature/*` branches.
-4. When version 1.1 is feature-complete, cut a release branch:
+4. When the next version is feature-complete, cut a release branch:
 
    ```sh
    git switch main
    git pull
-   git switch -c release/1.1-game-packs
-   git push -u origin release/1.1-game-packs
+   git switch -c release/1.3-pro-polish
+   git push -u origin release/1.3-pro-polish
    ```
 
 5. On the release branch, make only release-focused changes: bug fixes, App Store metadata, screenshots, StoreKit configuration checks, localization fixes, and final version/build bumps.
@@ -109,8 +123,8 @@ Use `main` as the ongoing development branch and use GitHub tags as the permanen
 7. After App Store approval, tag the exact commit that was submitted or approved:
 
    ```sh
-   git tag -a v1.1.0 -m "Count & Sprout 1.1.0"
-   git push origin v1.1.0
+   git tag -a v1.3.0 -m "Scan Tip 1.3.0"
+   git push origin v1.3.0
    ```
 
 8. Merge the release branch back into `main` so final release fixes and documentation are not lost:
@@ -118,7 +132,7 @@ Use `main` as the ongoing development branch and use GitHub tags as the permanen
    ```sh
    git switch main
    git pull
-   git merge --no-ff release/1.1-game-packs
+   git merge --no-ff release/1.3-pro-polish
    git push
    ```
 
@@ -130,17 +144,17 @@ For experiments, use `feature/*` branches from `main`. If the experiment works, 
 
 ### Patch Releases
 
-If version 1.0 or 1.1 needs an urgent App Store fix after shipping, branch from the shipped tag:
+If a shipped version needs an urgent App Store fix, branch from the shipped tag:
 
 ```sh
-git switch -c hotfix/1.0.1-fix-name v1.0.0
+git switch -c hotfix/1.2.1-fix-name v1.2.0
 ```
 
-Apply only the patch, bump the patch version/build, test, submit, then tag the approved commit as `v1.0.1`. Merge or cherry-pick the fix back into `main` afterward.
+Apply only the patch, bump the patch version/build, test, submit, then tag the approved commit, for example `v1.2.1`. Merge or cherry-pick the fix back into `main` afterward.
 
 ### Tag Naming
 
-- Use annotated tags named `vMAJOR.MINOR.PATCH`, for example `v1.0.0`, `v1.1.0`, or `v1.1.1`.
+- Use annotated tags named `vMAJOR.MINOR.PATCH`, for example `v1.2.0`, `v1.3.0`, or `v1.3.1`.
 - Create the tag only for builds submitted to App Store Connect or approved for release.
 - Keep build numbers in Xcode/App Store Connect, but keep Git tags tied to marketing versions.
 
