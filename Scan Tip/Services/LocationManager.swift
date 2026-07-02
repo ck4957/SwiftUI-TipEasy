@@ -35,6 +35,8 @@ final class LocationManager: NSObject, ObservableObject {
     }
 
     func requestPermissionOnFirstLaunch() {
+        guard !ScreenshotAutomation.isEnabled else { return }
+
         guard manager.authorizationStatus == .notDetermined else {
             refreshLocationIfAllowed()
             return
@@ -44,6 +46,8 @@ final class LocationManager: NSObject, ObservableObject {
     }
 
     func refreshLocationIfAllowed() {
+        guard !ScreenshotAutomation.isEnabled else { return }
+
         switch manager.authorizationStatus {
         case .authorizedAlways, .authorizedWhenInUse:
             manager.requestLocation()
