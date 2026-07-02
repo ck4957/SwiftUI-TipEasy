@@ -21,20 +21,36 @@ By default, the script replaces `.png`, `.jpg`, and `.jpeg` files in those displ
 
 ## App Preview Video Conversion
 
-Use the local ffmpeg wrapper when App Store Connect asks for an app preview at `886 x 1920` portrait or `1920 x 886` landscape:
+Use the local ffmpeg wrapper when App Store Connect asks for exact App Preview dimensions:
 
 ```bash
-./scripts/convert-app-preview-video.sh <input-video> <output-video> portrait
-./scripts/convert-app-preview-video.sh <input-video> <output-video> landscape
+./scripts/convert-app-preview-video.sh <input-video> <output-video> iphone portrait
+./scripts/convert-app-preview-video.sh <input-video> <output-video> iphone landscape
+./scripts/convert-app-preview-video.sh <input-video> <output-video> ipad portrait
+./scripts/convert-app-preview-video.sh <input-video> <output-video> ipad landscape
 ```
 
-Example:
+Targets:
+
+- iPhone portrait: `886 x 1920`
+- iPhone landscape: `1920 x 886`
+- iPad portrait: `1200 x 1600`
+- iPad landscape: `1600 x 1200`
+
+Examples:
 
 ```bash
 ./scripts/convert-app-preview-video.sh \
   screenshots/CreativeAssets/ScanTipAppStorePromo.mp4 \
   screenshots/app-store/iphone-6.9/ScanTipProductVideo-app-preview-iphone-6.9.mp4 \
+  iphone \
   portrait
+
+./scripts/convert-app-preview-video.sh \
+  docs/media/ScanTipProductVideo.mp4 \
+  screenshots/app-store/ipad-13/ScanTipProductVideo-app-preview-ipad-13.mp4 \
+  ipad \
+  landscape
 ```
 
 The script scales/crops to the exact requested canvas, outputs H.264/AAC `.mp4`, moves the file metadata to the front for upload/playback, and prints the resulting width, height, frame rate, and duration.

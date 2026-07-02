@@ -1,20 +1,25 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ $# -lt 2 || $# -gt 4 ]]; then
+if [[ $# -lt 2 || $# -gt 5 ]]; then
   cat >&2 <<'USAGE'
 Usage:
+  ./scripts/convert-app-preview-video.sh <input-video> <output-video> [iphone|ipad] [portrait|landscape] [fps]
+
+Backwards-compatible shorthand:
   ./scripts/convert-app-preview-video.sh <input-video> <output-video> [portrait|landscape] [fps]
 
 Examples:
   ./scripts/convert-app-preview-video.sh \
     screenshots/CreativeAssets/ScanTipAppStorePromo.mp4 \
     screenshots/app-store/iphone-6.9/ScanTipProductVideo-app-preview-iphone-6.9.mp4 \
+    iphone \
     portrait
 
   ./scripts/convert-app-preview-video.sh \
     docs/media/ScanTipProductVideo.mp4 \
-    screenshots/app-store/iphone-6.9/ScanTipProductVideo-app-preview-iphone-6.9.mp4 \
+    screenshots/app-store/ipad-13/ScanTipProductVideo-app-preview-ipad-13.mp4 \
+    ipad \
     landscape
 USAGE
   exit 2
@@ -22,20 +27,47 @@ fi
 
 INPUT="$1"
 OUTPUT="$2"
-ORIENTATION="${3:-portrait}"
-FPS="${4:-30}"
+PROFILE="iphone"
+ORIENTATION="portrait"
+FPS="30"
 
-case "$ORIENTATION" in
-  portrait)
+if [[ $# -ge 3 ]]; then
+  case "$3" in
+    iphone|ipad)
+      PROFILE="$3"
+      ORIENTATION="${4:-portrait}"
+      FPS="${5:-30}"
+      ;;
+    portrait|landscape)
+      ORIENTATION="$3"
+      FPS="${4:-30}"
+      ;;
+    *)
+      echo "Third argument must be 'iphone', 'ipad', 'portrait', or 'landscape'." >&2
+      exit 2
+      ;;
+  esac
+fi
+
+case "$PROFILE:$ORIENTATION" in
+  iphone:portrait)
     TARGET_WIDTH=886
     TARGET_HEIGHT=1920
     ;;
-  landscape)
+  iphone:landscape)
     TARGET_WIDTH=1920
     TARGET_HEIGHT=886
     ;;
+  ipad:portrait)
+    TARGET_WIDTH=1200
+    TARGET_HEIGHT=1600
+    ;;
+  ipad:landscape)
+    TARGET_WIDTH=1600
+    TARGET_HEIGHT=1200
+    ;;
   *)
-    echo "Orientation must be 'portrait' or 'landscape'." >&2
+    echo "Profile/orientation must be iphone|ipad and portrait|landscape." >&2
     exit 2
     ;;
 esac
@@ -46,6 +78,13 @@ command -v ffmpeg >/dev/null || {
 }
 
 mkdir -p "$(dirname "$OUTPUT")"
+
+INPUT_ABS="$(cd "$(dirname "$INPUT")" && pwd)/$(basename "$INPUT")"
+OUTPUT_ABS="$(cd "$(dirname "$OUTPUT")" && pwd)/$(basename "$OUTPUT")"
+if [[ "$INPUT_ABS" == "$OUTPUT_ABS" ]]; then
+  echo "Input and output must be different paths. Write to build/... first, then replace the original after verifying." >&2
+  exit 2
+fi
 
 ffmpeg -y \
   -i "$INPUT" \
