@@ -31,7 +31,6 @@ struct TipPresetSettingsView: View {
             VStack(alignment: .leading, spacing: .spacingLarge) {
                 guideCard
                 proCard
-                introCard
                 presetCard
                 privacyCard
             }
@@ -184,42 +183,21 @@ struct TipPresetSettingsView: View {
         .settingsGlassCard(palette: palette)
     }
 
-    private var introCard: some View {
-        VStack(alignment: .leading, spacing: .spacingSmall) {
-            Label("Tip Suggestions", systemImage: "slider.horizontal.3")
-                .font(.headline)
-            Text("Customize the percentages shown on the calculator. Added presets join the built-in set and stay sorted automatically.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-
-            if !purchaseManager.isProUnlocked {
-                Label("Custom presets are included with Pro.", systemImage: "crown")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(palette.accent)
-            }
-        }
-        .settingsGlassCard(palette: palette)
-    }
-
     private var presetCard: some View {
         VStack(alignment: .leading, spacing: .spacingMedium) {
-            HStack {
-                Text("Presets")
+            VStack(alignment: .leading, spacing: .spacingSmall) {
+                Label("Tip Suggestions", systemImage: "slider.horizontal.3")
                     .font(.headline)
-                Spacer()
-                Button {
-                    guard purchaseManager.isProUnlocked else {
-                        showProUpgrade(source: "custom_presets")
-                        return
-                    }
 
-                    showingPresetManager = true
-                } label: {
-                    Image(systemName: "slider.horizontal.3")
-                        .frame(width: .minimumTouchTarget, height: .minimumTouchTarget)
+                Text("Customize the percentages shown on the calculator. Added presets join the built-in set and stay sorted automatically.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+
+                if !purchaseManager.isProUnlocked {
+                    Label("Custom presets are included with Pro.", systemImage: "crown")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(palette.accent)
                 }
-                .buttonStyle(.glassProminent)
-                .accessibilityLabel("Manage presets")
             }
 
             Text("\(activePresetValues.count) active preset\(activePresetValues.count == 1 ? "" : "s")")

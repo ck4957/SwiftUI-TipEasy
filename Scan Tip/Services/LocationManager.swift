@@ -1,5 +1,6 @@
 import CoreLocation
 import Foundation
+import MapKit
 
 struct TipLocationSnapshot: Equatable {
     let latitude: Double
@@ -25,7 +26,7 @@ final class LocationManager: NSObject, ObservableObject {
     @Published private(set) var latestLocation: TipLocationSnapshot?
 
     private let manager = CLLocationManager()
-    private let geocoder = CLGeocoder()
+    private var reverseGeocodingTask: Task<Void, Never>?
 
     override init() {
         super.init()
@@ -65,23 +66,26 @@ final class LocationManager: NSObject, ObservableObject {
             capturedAt: .now
         )
 
-        Task {
+        reverseGeocodingTask?.cancel()
+        reverseGeocodingTask = Task {
             await reverseGeocode(location)
         }
     }
 
     private func reverseGeocode(_ location: CLLocation) async {
-        guard !geocoder.isGeocoding else { return }
+        guard let request = MKReverseGeocodingRequest(location: location) else { return }
 
         do {
-            let placemarks = try await geocoder.reverseGeocodeLocation(location)
-            guard let placemark = placemarks.first else { return }
+            let mapItems = try await request.mapItems
+            guard !Task.isCancelled, let mapItem = mapItems.first else { return }
+            let address = mapItem.address
+            let addressRepresentations = mapItem.addressRepresentations
             latestLocation = TipLocationSnapshot(
                 latitude: location.coordinate.latitude,
                 longitude: location.coordinate.longitude,
-                name: placemark.name,
-                locality: placemark.locality,
-                administrativeArea: placemark.administrativeArea,
+                name: mapItem.name ?? address?.shortAddress ?? addressRepresentations?.fullAddress(includingRegion: false, singleLine: true),
+                locality: addressRepresentations?.cityName,
+                administrativeArea: addressRepresentations?.cityWithContext,
                 capturedAt: .now
             )
         } catch {

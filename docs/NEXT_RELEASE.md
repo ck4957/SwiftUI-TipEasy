@@ -20,6 +20,7 @@ Use this file as the living release log while the branch is in progress. When ne
 
 - Added `TipPresetCatalog` to merge built-in defaults with custom presets, deduplicate values, sort presets, and persist hidden built-in presets.
 - Reworked Settings preset management into a dedicated manager sheet.
+- Consolidated the Settings tip suggestions section so preset guidance, active preset preview, Pro messaging, and the Manage Presets action live in one card.
 - Users can now hide built-in presets, add custom presets, edit custom presets, and restore a hidden default by adding the same percentage again.
 - Preset deletion analytics now include whether the deleted preset was built-in or custom.
 
