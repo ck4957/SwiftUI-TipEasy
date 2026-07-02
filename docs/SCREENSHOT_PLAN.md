@@ -15,7 +15,7 @@ The script runs `Scan TipUITests/AppStoreScreenshotUITests` on the configured iP
 - `screenshots/app-store/iphone-6.9/`
 - `screenshots/app-store/ipad-13/`
 
-The UI test suite does not depend on AI or manual screen navigation. It uses Xcode UI automation, launch arguments, an in-memory SwiftData store, seeded sample history, English locale/language arguments, and a debug-only Pro unlock. Override `IPHONE_DESTINATION` or `IPAD_DESTINATION` when a local Xcode install uses a different simulator name.
+The UI test suite does not depend on AI or manual screen navigation. It uses Xcode UI automation, launch arguments, an in-memory SwiftData store, seeded sample history, English locale/language arguments, and a debug-only Pro unlock. The default destinations are pinned to iOS 26.5 on this machine because the iOS 27.0 iPad simulator currently hangs during raw `xcodebuild` result finalization. Override `IPHONE_DESTINATION` or `IPAD_DESTINATION` when a local Xcode install uses a different simulator name or runtime.
 
 By default, the script replaces `.png`, `.jpg`, and `.jpeg` files in those display folders while preserving app preview videos and other non-image assets. For a dry run, set `SCREENSHOT_ROOT=build/screenshot-dry-run`.
 
