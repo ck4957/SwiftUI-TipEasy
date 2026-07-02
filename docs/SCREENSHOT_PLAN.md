@@ -19,6 +19,26 @@ The UI test suite does not depend on AI or manual screen navigation. It uses Xco
 
 By default, the script replaces `.png`, `.jpg`, and `.jpeg` files in those display folders while preserving app preview videos and other non-image assets. For a dry run, set `SCREENSHOT_ROOT=build/screenshot-dry-run`.
 
+## App Preview Video Conversion
+
+Use the local ffmpeg wrapper when App Store Connect asks for an app preview at `886 x 1920` portrait or `1920 x 886` landscape:
+
+```bash
+./scripts/convert-app-preview-video.sh <input-video> <output-video> portrait
+./scripts/convert-app-preview-video.sh <input-video> <output-video> landscape
+```
+
+Example:
+
+```bash
+./scripts/convert-app-preview-video.sh \
+  screenshots/CreativeAssets/ScanTipAppStorePromo.mp4 \
+  screenshots/app-store/iphone-6.9/ScanTipProductVideo-app-preview-iphone-6.9.mp4 \
+  portrait
+```
+
+The script scales/crops to the exact requested canvas, outputs H.264/AAC `.mp4`, moves the file metadata to the front for upload/playback, and prints the resulting width, height, frame rate, and duration.
+
 ## Existing Screenshot Inventory
 
 | Asset | Device family | Size | Source | Status |
