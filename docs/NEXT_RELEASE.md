@@ -13,7 +13,7 @@ Use this file as the living release log while the branch is in progress. When ne
 
 - Added `PurchaseManager` with StoreKit product loading, one-time Pro purchase, transaction update observation, entitlement refresh, restore purchases, and debug preview unlock/reset helpers.
 - Added `ProUpgradeView`, a Scan Tip Pro paywall with feature copy, purchase and restore actions, error handling, and analytics events.
-- Added Pro gates across paid features. Free users keep the calculator and the latest saved history items; Pro unlocks receipt scanning, unlimited history, Smart Check insights, custom tip presets, and richer history views.
+- Added Pro gates across paid features. Free users keep the calculator, receipt scanning, and the latest saved history items; Pro unlocks unlimited history, Smart Check insights, custom tip presets, richer history views, history export/share, and iCloud sync.
 - Added purchase analytics events for paywall views, gated feature taps, purchase completion, purchase failure, and restore completion.
 
 ### Tip Presets
@@ -27,6 +27,8 @@ Use this file as the living release log while the branch is in progress. When ne
 
 - Added Pro-aware history limits for free users and an upgrade prompt from History.
 - Added Pro history charts and summaries, including monthly flow and tip distribution views.
+- Added Pro history export/share as CSV from the History toolbar.
+- Added a shared SwiftData `ScanTipModelContainer` configured for private CloudKit sync.
 - Added richer history detail support for saved receipt images and optional saved place details.
 - Added local location snapshot storage fields to `TipTransaction` for latitude, longitude, place name, locality, administrative area, and capture date.
 
@@ -34,14 +36,14 @@ Use this file as the living release log while the branch is in progress. When ne
 
 - Added `LocationManager` for When In Use permission, location refresh, and reverse-geocoded local place snapshots.
 - Added `NSLocationWhenInUseUsageDescription` explaining that location is used while the app is open to save where a receipt or tip was captured.
-- Updated privacy documentation to describe permission-gated, local-only place details for saved tip history.
+- Updated privacy documentation to describe permission-gated place details for saved tip history and private iCloud sync behavior.
 
 ### Receipt Scanner And Calculator
 
 - Receipt scanner tip tiles now show both tip amount and final total for each suggested percentage.
 - Scanner tip tiles have improved adaptive layout sizing and accessibility labels.
 - Calculator save flows can attach the latest local location snapshot to saved transactions when permission has been granted.
-- Receipt scanning is treated as a Pro feature in the current branch.
+- Receipt scanning is free in the current branch; Smart Check insights remain a Pro feature.
 
 ### Marketing And App Store Assets
 
@@ -51,7 +53,7 @@ Use this file as the living release log while the branch is in progress. When ne
 
 ## Draft App Store "What's New"
 
-Scan Tip now includes a Pro unlock for receipt scanning, unlimited saved history, Smart Check insights, custom tip presets, and history charts. This update also improves receipt scanner tip suggestions with final totals, adds richer preset management, and can save optional local place details with your tip history when location permission is granted.
+Scan Tip now includes a Pro unlock for unlimited saved history, Smart Check insights, custom tip presets, history charts, history export/share, and iCloud sync. Receipt scanning remains free, and this update improves scanner tip suggestions with final totals, adds richer preset management, and can save optional local place details with your tip history when location permission is granted.
 
 NEEDS_CONFIRMATION before submission:
 
@@ -116,7 +118,7 @@ When adding more features to this branch:
 - NEEDS_CONFIRMATION: final version/build for this release.
 - NEEDS_CONFIRMATION: final Pro product title, price, product ID, and App Store Connect in-app purchase review metadata.
 - NEEDS_CONFIRMATION: whether Pro is a one-time non-consumable purchase in App Store Connect.
-- NEEDS_CONFIRMATION: final free-tier limits and whether receipt scanning is fully Pro-gated.
+- NEEDS_CONFIRMATION: final free-tier limits and Apple Developer/App Store CloudKit container setup.
 - NEEDS_CONFIRMATION: final screenshot order and whether overlay text assets or raw screenshots should be submitted.
 - NEEDS_CONFIRMATION: final App Privacy answers for purchases and optional local location storage.
 - NEEDS_CONFIRMATION: support contact and release mode.

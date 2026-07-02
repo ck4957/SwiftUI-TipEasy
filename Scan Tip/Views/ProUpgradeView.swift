@@ -5,10 +5,11 @@ enum ProFeatureCopy {
 
     static let unlockedFeatures = [
         "Unlimited saved history",
-        "Receipt scanning",
         "Smart Check insights",
         "Custom tip presets",
-        "History charts and summaries"
+        "History charts and summaries",
+        "Export and share history",
+        "iCloud sync"
     ]
 }
 
@@ -70,7 +71,7 @@ struct ProUpgradeView: View {
                     .fontDesign(.rounded)
                     .fixedSize(horizontal: false, vertical: true)
 
-                    Text("Keep the calculator free. Upgrade once for scanning, deeper history, custom presets, and Smart Check.")
+                    Text("Keep the calculator and receipt scanning free. Upgrade once for deeper history, custom presets, Smart Check, exports, and iCloud sync.")
                     .font(.body)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)

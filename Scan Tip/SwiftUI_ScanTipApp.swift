@@ -16,7 +16,7 @@ struct ScanTipApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .modelContainer(for: [TipPreset.self, TipTransaction.self])
+                .modelContainer(ScanTipModelContainer.shared)
                 .environment(purchaseManager)
                 .environmentObject(locationManager)
                 .task {

@@ -6,7 +6,11 @@ import StoreKit
 @Observable
 final class PurchaseManager {
     static let proProductID = "com.chiragkular.SwiftUI-TipEasy.pro"
-    private static let proUnlockedKey = "isTipEasyProUnlocked"
+    nonisolated private static let proUnlockedKey = "isTipEasyProUnlocked"
+
+    nonisolated static func storedProUnlock(defaults: UserDefaults = .standard) -> Bool {
+        defaults.bool(forKey: proUnlockedKey)
+    }
 
     private let defaults: UserDefaults
     private var updatesTask: Task<Void, Never>?

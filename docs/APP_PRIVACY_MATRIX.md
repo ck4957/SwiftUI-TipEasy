@@ -24,10 +24,10 @@ Privacy answers must be reviewed before App Store submission. This file records 
 
 ## Local Storage Notes
 
-- SwiftData stores `TipPreset` and `TipTransaction` locally.
+- SwiftData stores `TipPreset` and `TipTransaction` locally and can sync those records through the user's private iCloud container.
 - User preferences are stored with `AppStorage` / `UserDefaults`, including onboarding completion, selected theme, appearance, and pending shortcut routing.
 - Receipt OCR text and parsed receipt scan results are described as transient unless the user saves a transaction.
-- If location permission is granted, saved transactions may include optional coordinates and reverse-geocoded place details stored locally.
+- If location permission is granted, saved transactions may include optional coordinates and reverse-geocoded place details stored with the saved SwiftData record.
 - Users can delete local saved tips, custom presets, onboarding status, and pending shortcut state from Settings > Privacy & Data > Delete Local Data.
 
 ## Unresolved Privacy Questions
@@ -35,4 +35,4 @@ Privacy answers must be reviewed before App Store submission. This file records 
 - Confirm whether any production analytics provider will be connected before release.
 - Confirm App Store privacy treatment for StoreKit purchase history/entitlements.
 - Confirm final disclosure treatment for saved bill totals, restaurant names, and receipt-derived fields.
-- Confirm whether the privacy policy URL covers local storage, camera scanning, Apple Intelligence on-device processing, saved receipt photos, and permission-gated local location storage.
+- Confirm whether the privacy policy URL covers SwiftData/iCloud sync, camera scanning, Apple Intelligence on-device processing, saved receipt photos, and permission-gated location storage.

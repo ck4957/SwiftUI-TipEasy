@@ -184,7 +184,7 @@ struct TipCalculatorView: View {
     }
 
     private var shouldShowSmartCheck: Bool {
-        tipExplanation != nil || !anomalyInsights.isEmpty || receiptScanResult?.usedAppleIntelligence == true
+        purchaseManager.isProUnlocked && (tipExplanation != nil || !anomalyInsights.isEmpty || receiptScanResult?.usedAppleIntelligence == true)
     }
 
     private var customTipLabel: String {
@@ -210,7 +210,7 @@ struct TipCalculatorView: View {
                 Button {
                     openScanner(source: "hero")
                 } label: {
-                    Label(purchaseManager.isProUnlocked ? "Scan" : "Pro Scan", systemImage: "camera.viewfinder")
+                    Label("Scan", systemImage: "camera.viewfinder")
                         .labelStyle(.titleAndIcon)
                 }
                 .buttonStyle(.glass)
@@ -506,11 +506,6 @@ struct TipCalculatorView: View {
     }
 
     private func openScanner(source: String) {
-        guard purchaseManager.isProUnlocked else {
-            showProUpgrade(source: "receipt_scan_\(source)")
-            return
-        }
-
         AnalyticsService.track(.receiptScanStarted, properties: ["source": source])
         locationManager.refreshLocationIfAllowed()
         showingScanner = true

@@ -12,6 +12,7 @@ struct TipHistoryView: View {
     @State private var searchText = ""
     @State private var selectedReceiptPhoto: ReceiptPhotoPreview?
     @State private var selectedTransaction: TipTransaction?
+    @State private var sharePayload: HistorySharePayload?
     @State private var proUpgradeRequest: ProUpgradeRequest?
 
     private let currencyCode = Locale.current.currency?.identifier ?? "USD"
@@ -108,6 +109,17 @@ struct TipHistoryView: View {
             .ignoresSafeArea()
         )
         .navigationTitle("History")
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    exportHistory()
+                } label: {
+                    Image(systemName: "square.and.arrow.up")
+                }
+                .disabled(transactions.isEmpty)
+                .accessibilityLabel("Export history")
+            }
+        }
         .searchable(text: $searchText, prompt: "Try: this month, over 20%, coffee")
         .sheet(item: $selectedReceiptPhoto) { preview in
             ReceiptPhotoPreviewSheet(preview: preview)
@@ -121,6 +133,9 @@ struct TipHistoryView: View {
                     )
                 }
             }
+        }
+        .sheet(item: $sharePayload) { payload in
+            HistoryActivityView(activityItems: [payload.text])
         }
         .sheet(item: $proUpgradeRequest) { request in
             ProUpgradeView(source: request.source)
@@ -213,11 +228,36 @@ struct TipHistoryView: View {
         AnalyticsService.track(.proGateTapped, properties: ["source": source])
         proUpgradeRequest = ProUpgradeRequest(source: source)
     }
+
+    private func exportHistory() {
+        guard purchaseManager.isProUnlocked else {
+            showProUpgrade(source: "history_export")
+            return
+        }
+
+        let csv = HistoryExportService.csv(for: transactions, currencyCode: currencyCode)
+        sharePayload = HistorySharePayload(text: csv)
+    }
 }
 
 private struct ProUpgradeRequest: Identifiable {
     let source: String
     var id: String { source }
+}
+
+private struct HistorySharePayload: Identifiable {
+    let id = UUID()
+    let text: String
+}
+
+private struct HistoryActivityView: UIViewControllerRepresentable {
+    let activityItems: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
 private struct MonthlyTrendChartCard: View {

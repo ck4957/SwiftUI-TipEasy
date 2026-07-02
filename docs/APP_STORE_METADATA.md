@@ -21,12 +21,12 @@ Status: NEEDS_INPUT
 
 Scan Tip helps you quickly calculate restaurant tips and totals. Enter a bill amount, choose a preset tip, adjust a custom percentage or dollar amount, and see the final total instantly.
 
-The app can save local dining history, summarize recent totals, and detect possible duplicate visits. Receipt scanning uses the device camera to read receipt totals and warn when service charges or included gratuity may already be present. On supported iOS versions, Apple Intelligence can refine receipt details on device.
+The app can save dining history, sync SwiftData history and presets with iCloud, summarize recent totals, and detect possible duplicate visits. Receipt scanning uses the device camera to read receipt totals and warn when service charges or included gratuity may already be present. On supported iOS versions, Apple Intelligence can refine receipt details on device.
 
-Scan Tip also supports Scan Tip Pro, a one-time unlock for receipt scanning, unlimited saved history, Smart Check insights, custom tip presets, and history charts. Users can manage built-in and custom preset visibility, restore purchases, change appearance themes, replay onboarding, delete local data, and use App Shortcuts for common calculator actions.
+Scan Tip also supports Scan Tip Pro, a one-time unlock for unlimited saved history, Smart Check insights, custom tip presets, history charts, history export/share, and iCloud sync. Users can manage built-in and custom preset visibility, restore purchases, change appearance themes, replay onboarding, delete local data, and use App Shortcuts for common calculator actions.
 
 - Keywords: tip calculator, restaurant, receipt scanner, gratuity, dining, bill splitter, tip, calculator, history
-- What's new: Scan Tip now includes a Pro unlock for receipt scanning, unlimited saved history, Smart Check insights, custom tip presets, and history charts. This update also improves receipt scanner tip suggestions with final totals, adds richer preset management, and can save optional local place details with your tip history when location permission is granted. NEEDS_CONFIRMATION
+- What's new: Scan Tip now includes a Pro unlock for unlimited saved history, Smart Check insights, custom tip presets, history charts, history export/share, and iCloud sync. Receipt scanning remains free, with improved scanner tip suggestions that show final totals. This update also adds richer preset management and can save optional local place details with your tip history when location permission is granted. NEEDS_CONFIRMATION
 
 ## Business And Availability
 
@@ -61,8 +61,8 @@ Scan Tip also supports Scan Tip Pro, a one-time unlock for receipt scanning, unl
 - Reviewer demo credentials: Not required; no login flow found.
 - Notes:
   - Camera access is used only to scan receipt text for bill totals and possible included service charges.
-  - Saved tip presets and saved transactions are stored locally with SwiftData.
-  - If location permission is granted, saved transactions can include local place details and coordinates for the history map preview.
+  - Saved tip presets and saved transactions are stored with SwiftData and can sync through the user's private iCloud container.
+  - If location permission is granted, saved transactions can include place details and coordinates for the history map preview.
   - Users can delete local saved tips, custom presets, onboarding status, and pending shortcut state from Settings > Privacy & Data > Delete Local Data.
   - Production analytics provider is not connected in code; `AnalyticsService` prints in DEBUG and has a placeholder for release builds.
   - Scan Tip Pro uses StoreKit product ID `com.chiragkular.SwiftUI-TipEasy.pro`; confirm matching App Store Connect in-app purchase metadata before review.

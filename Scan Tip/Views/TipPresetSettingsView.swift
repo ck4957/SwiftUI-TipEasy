@@ -152,7 +152,7 @@ struct TipPresetSettingsView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(purchaseManager.isProUnlocked ? "Scan Tip Pro Active" : "Scan Tip Pro")
                         .font(.headline)
-                    Text(purchaseManager.isProUnlocked ? "Receipt scanning, unlimited history, Smart Check, and custom presets are unlocked." : "Upgrade once for receipt scanning, unlimited history, Smart Check, and custom presets.")
+                    Text(purchaseManager.isProUnlocked ? "Unlimited history, Smart Check, custom presets, exports, and iCloud sync are unlocked." : "Upgrade once for unlimited history, Smart Check, custom presets, exports, and iCloud sync.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)

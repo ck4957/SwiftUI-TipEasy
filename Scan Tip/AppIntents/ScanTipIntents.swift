@@ -66,7 +66,7 @@ struct TipTransactionQuery: EntityStringQuery {
     }
 
     private func fetchEntities() throws -> [TipTransactionEntity] {
-        let container = try ModelContainer(for: TipPreset.self, TipTransaction.self)
+        let container = try ScanTipModelContainer.make()
         let context = ModelContext(container)
         var descriptor = FetchDescriptor<TipTransaction>(
             sortBy: [SortDescriptor(\.date, order: .reverse)]
@@ -200,7 +200,7 @@ struct SaveTipIntent: AppIntent {
     func perform() async throws -> some IntentResult & ReturnsValue<TipTransactionEntity> {
         let tip = billAmount * tipPercent / 100
         let total = billAmount + tip
-        let container = try ModelContainer(for: TipPreset.self, TipTransaction.self)
+        let container = try ScanTipModelContainer.make()
         let context = ModelContext(container)
         let transaction = TipTransaction(
             restaurantName: restaurantName,

@@ -15,7 +15,7 @@ com.chiragkular.SwiftUI-TipEasy
 - Receipt scanning with camera support.
 - Receipt insights for possible service charges or included gratuity.
 - Saved local tip history with summary views.
-- Scan Tip Pro one-time unlock for receipt scanning, unlimited saved history, Smart Check insights, custom tip presets, and history charts.
+- Scan Tip Pro one-time unlock for unlimited saved history, Smart Check insights, custom tip presets, history charts, history export/share, and iCloud sync.
 - Customizable tip presets stored with SwiftData, including built-in preset visibility controls.
 - Optional local place details for saved tips when When In Use location permission is granted.
 - Settings for appearance, onboarding replay, data controls, and privacy actions.
@@ -127,7 +127,7 @@ App Store sized screenshots are stored in `screenshots/generated/`.
 
 Version `1.2`, build `8`, adds receipt scanning, saved tip history, on-device tip insights, App Shortcuts, iPad support, and onboarding updates.
 
-The next release draft is tracked in `docs/NEXT_RELEASE.md`. Current branch work adds Scan Tip Pro purchase/restore flows, Pro-gated advanced tools, richer preset management, history charts and summaries, optional local place details for saved tips, and receipt scanner suggestion tiles that show both tip and total amounts.
+The next release draft is tracked in `docs/NEXT_RELEASE.md`. Current branch work adds Scan Tip Pro purchase/restore flows, Pro-gated advanced tools, richer preset management, history charts and summaries, history export/share, iCloud sync for SwiftData history and presets, optional local place details for saved tips, and receipt scanner suggestion tiles that show both tip and total amounts.
 
 Every new upload for the same App Store version must increment `CURRENT_PROJECT_VERSION`.
 
@@ -145,7 +145,7 @@ Run the lightweight release gate before release commits:
 
 ## Privacy
 
-Scan Tip does not require login. Saved tip history and custom presets are stored locally on the device with SwiftData. Camera access is used for receipt scanning, and When In Use location access can attach local place details to saved tip history when approved.
+Scan Tip does not require login. Saved tip history and custom presets use SwiftData with a private CloudKit container for iCloud sync. Camera access is used for receipt scanning, and When In Use location access can attach place details to saved tip history when approved.
 
 See `docs/privacy.html` and `docs/APP_PRIVACY_MATRIX.md` for release review details.
 

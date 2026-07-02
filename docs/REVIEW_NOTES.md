@@ -12,10 +12,10 @@ Status: NEEDS_INPUT
 6. Tap Save to store the transaction locally.
 7. Open the History tab to view saved transactions and summary totals.
 8. If Pro is not unlocked, use the History or Settings Pro prompt to open the Scan Tip Pro screen.
-9. Test purchase or restore using App Store sandbox review tools; Pro unlocks receipt scanning, unlimited history, Smart Check insights, custom tip presets, and history charts.
+9. Test purchase or restore using App Store sandbox review tools; Pro unlocks unlimited history, Smart Check insights, custom tip presets, history charts, history export/share, and iCloud sync.
 10. Open Settings to manage presets, replay onboarding, change appearance, restore purchases, or delete local app data.
 11. Use Settings > Privacy & Data > Delete Local Data to remove saved tips, custom presets, hidden default presets, onboarding status, and pending shortcut state from the device.
-12. On a supported device and Pro-unlocked state, tap the camera/scanner action to scan receipt text and apply a detected total.
+12. On a supported device, tap the camera/scanner action to scan receipt text and apply a detected total. Receipt scanning is available without Pro.
 
 ## Login Instructions
 
@@ -27,6 +27,7 @@ No login is required. No reviewer account is needed.
 - Location: used while the app is open to attach optional local place details to saved tip history when permission is granted. The app's permission string is: "Scan Tip uses your location while the app is open to save where a receipt or tip was captured."
 - Local storage: SwiftData stores custom tip presets and saved tip transactions on device.
 - StoreKit: Scan Tip Pro is a one-time purchase handled by the App Store. The app observes verified transactions and stores a local unlock flag.
+- iCloud: Scan Tip uses a private CloudKit container for SwiftData history and custom preset sync.
 - Local data deletion: Settings includes a Privacy & Data section where users can delete saved tip history, custom presets, hidden default presets, onboarding status, and pending shortcut state from the device.
 - Ads: No ad SDK is included.
 

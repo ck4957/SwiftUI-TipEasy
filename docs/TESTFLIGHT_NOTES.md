@@ -13,9 +13,9 @@ Scan Tip is a SwiftUI tip calculator for restaurant bills. Testers can enter a b
 - Switch between custom percentage and custom dollar tip input.
 - Save a transaction and confirm it appears in History.
 - Confirm free History shows only the latest saved tips and presents the Pro upgrade prompt.
-- In a Pro-unlocked state, confirm unlimited history, monthly charts, tip distribution, summaries, and search work as expected.
+- In a Pro-unlocked state, confirm unlimited history, monthly charts, tip distribution, summaries, search, history export/share, and iCloud sync messaging work as expected.
 - Search History by restaurant name, amount, date phrase, or tip comparison.
-- Open Scan Tip Pro from Settings, History, receipt scanning, and custom preset gates.
+- Open Scan Tip Pro from Settings, History, history export, and custom preset gates.
 - Test StoreKit purchase, cancel, pending/error messaging, successful unlock, app relaunch entitlement persistence, and restore purchase.
 - Add, edit, hide, restore, and delete built-in/custom tip presets in the preset manager.
 - Use Settings > Privacy & Data > Delete Local Data and confirm saved history/custom presets are removed.

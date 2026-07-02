@@ -4,12 +4,12 @@ import SwiftData
 @Model
 final class TipTransaction: Identifiable {
     var id: UUID = UUID()
-    var date: Date
-    var restaurantName: String
-    var billAmount: Double
-    var tipPercentage: Double
-    var tipAmount: Double
-    var totalAmount: Double
+    var date: Date = Date()
+    var restaurantName: String = ""
+    var billAmount: Double = 0
+    var tipPercentage: Double = 0
+    var tipAmount: Double = 0
+    var totalAmount: Double = 0
     var receiptPhotoFilename: String?
     var locationLatitude: Double?
     var locationLongitude: Double?

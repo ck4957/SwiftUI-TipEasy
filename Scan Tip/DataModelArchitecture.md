@@ -2,14 +2,14 @@
 
 ## Overview
 
-Scan Tip is a SwiftUI app backed by SwiftData for local persistence. The persistent domain is intentionally small: saved tip presets and saved tip transactions. Receipt scanning and calculator state are treated as transient view state unless a user explicitly saves a transaction.
+Scan Tip is a SwiftUI app backed by SwiftData with a private CloudKit database for iCloud sync. The persistent domain is intentionally small: saved tip presets and saved tip transactions. Receipt scanning and calculator state are treated as transient view state unless a user explicitly saves a transaction.
 
-The SwiftData container is configured in `SwiftUI_ScanTipApp.swift` for:
+The SwiftData container is configured through `ScanTipModelContainer` for:
 
 - `TipPreset`
 - `TipTransaction`
 
-No ad SDK state is part of the app data model.
+No ad SDK state is part of the app data model. Saved receipt image files remain in local app storage; the SwiftData record can sync the image filename, but not the image data itself.
 
 ## Persistent Models
 
@@ -148,7 +148,7 @@ Shared destination values are modeled by `ScanTipDestination`, with cases for ca
 
 ## Storage Boundaries
 
-Persisted locally:
+Persisted with SwiftData and eligible for private iCloud sync:
 
 - Tip presets.
 - Saved tip transactions.
