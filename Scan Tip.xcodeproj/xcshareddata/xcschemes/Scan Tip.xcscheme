@@ -56,6 +56,18 @@
             </BuildableReference>
          </TestableReference>
       </Testables>
+      <EnvironmentVariables>
+         <EnvironmentVariable
+            key = "SCREENSHOT_OUTPUT_DIR"
+            value = "$(SCREENSHOT_OUTPUT_DIR)"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "SCREENSHOT_DEVICE_PREFIX"
+            value = "$(SCREENSHOT_DEVICE_PREFIX)"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+      </EnvironmentVariables>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"

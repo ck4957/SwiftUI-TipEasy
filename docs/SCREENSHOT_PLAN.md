@@ -10,7 +10,7 @@ Run the App Store screenshot suite whenever the UI changes or before preparing a
 ./scripts/generate-screenshots.sh
 ```
 
-The script runs `Scan TipUITests/AppStoreScreenshotUITests` on the configured iPhone 6.9-inch and iPad 13-inch simulators, launches the app with deterministic screenshot fixtures, and writes PNGs into:
+The script runs `Scan TipUITests/AppStoreScreenshotUITests` on the configured iPhone 6.9-inch and iPad 13-inch simulators, launches the app with deterministic screenshot fixtures, keeps named `XCTAttachment` screenshots in the `.xcresult` bundle, exports them with `xcresulttool`, and writes stable PNG filenames into:
 
 - `screenshots/app-store/iphone-6.9/`
 - `screenshots/app-store/ipad-13/`

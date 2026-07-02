@@ -31,7 +31,7 @@ final class AppStoreScreenshotUITests: XCTestCase {
     func testCaptureMainFlowScreenshots() throws {
         launch(scenario: "main-flow")
 
-        XCTAssertTrue(app.tabBars.buttons["Calculator"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["Bill"].waitForExistence(timeout: 10))
         try capture("04-calculator-empty")
 
         let billField = app.textFields["Bill amount"]
@@ -46,12 +46,12 @@ final class AppStoreScreenshotUITests: XCTestCase {
         app.toolbars.buttons["Done"].tap()
         try capture("05-calculator-total")
 
-        app.tabBars.buttons["History"].tap()
-        XCTAssertTrue(app.navigationBars["History"].waitForExistence(timeout: 5))
+        try tapPrimaryNavigationItem("History")
+        XCTAssertTrue(app.staticTexts["Local Totals"].waitForExistence(timeout: 5))
         try capture("06-history")
 
-        app.tabBars.buttons["Settings"].tap()
-        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5))
+        try tapPrimaryNavigationItem("Settings")
+        XCTAssertTrue(app.staticTexts["Quick Guide"].waitForExistence(timeout: 5))
         try capture("07-settings")
     }
 
@@ -90,5 +90,28 @@ final class AppStoreScreenshotUITests: XCTestCase {
 
         let fileURL = directoryURL.appendingPathComponent("\(devicePrefix)-\(name).png")
         try screenshot.pngRepresentation.write(to: fileURL, options: .atomic)
+    }
+
+    @MainActor
+    private func tapPrimaryNavigationItem(_ label: String) throws {
+        let tabBarButton = app.tabBars.buttons[label]
+        if tabBarButton.waitForExistence(timeout: 2) {
+            tabBarButton.firstMatch.tap()
+            return
+        }
+
+        let button = app.buttons[label]
+        if button.waitForExistence(timeout: 2) {
+            button.firstMatch.tap()
+            return
+        }
+
+        let text = app.staticTexts[label]
+        if text.waitForExistence(timeout: 2) {
+            text.tap()
+            return
+        }
+
+        XCTFail("Could not find navigation item named \(label).")
     }
 }

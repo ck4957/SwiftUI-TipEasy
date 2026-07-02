@@ -15,19 +15,28 @@ run_for_device() {
   local destination="$2"
   local output_dir="$SCREENSHOT_ROOT/$device_prefix"
   local result_bundle="$RESULTS_DIR/$device_prefix.xcresult"
+  local attachment_dir="$RESULTS_DIR/$device_prefix-attachments"
 
   mkdir -p "$output_dir" "$RESULTS_DIR"
   find "$output_dir" -maxdepth 1 \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' \) -delete
-  rm -rf "$result_bundle"
+  rm -rf "$result_bundle" "$attachment_dir"
 
-  SCREENSHOT_OUTPUT_DIR="$output_dir" \
-  SCREENSHOT_DEVICE_PREFIX="$device_prefix" \
   xcodebuild test \
     -workspace "$WORKSPACE" \
     -scheme "$SCHEME" \
     -destination "$destination" \
     -only-testing:"Scan TipUITests/AppStoreScreenshotUITests" \
     -resultBundlePath "$result_bundle"
+
+  xcrun xcresulttool export attachments \
+    --path "$result_bundle" \
+    --output-path "$attachment_dir"
+
+  jq -r '.[] | .attachments[] | [.exportedFileName, .suggestedHumanReadableName] | @tsv' "$attachment_dir/manifest.json" |
+    while IFS=$'\t' read -r exported_file suggested_name; do
+      screenshot_name="${suggested_name%%_0_*}"
+      cp "$attachment_dir/$exported_file" "$output_dir/$device_prefix-$screenshot_name.png"
+    done
 
   find "$output_dir" -name '*.png' -maxdepth 1 -print | sort
 }
