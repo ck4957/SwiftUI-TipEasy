@@ -11,7 +11,7 @@ enum ScanTipModelContainer {
         }
     }()
 
-    static func make() throws -> ModelContainer {
+    static func make(inMemory: Bool = false) throws -> ModelContainer {
         let schema = Schema([
             TipPreset.self,
             TipTransaction.self
@@ -21,7 +21,8 @@ enum ScanTipModelContainer {
             : .none
         let configuration = ModelConfiguration(
             schema: schema,
-            cloudKitDatabase: cloudKitDatabase
+            isStoredInMemoryOnly: inMemory,
+            cloudKitDatabase: inMemory ? .none : cloudKitDatabase
         )
 
         return try ModelContainer(for: schema, configurations: [configuration])

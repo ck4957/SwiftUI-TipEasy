@@ -49,7 +49,9 @@ struct ContentView: View {
         .onAppear {
             trackAppOpenIfNeeded()
             routePendingDestination()
-            locationManager.requestPermissionOnFirstLaunch()
+            if !ScreenshotAutomation.isEnabled {
+                locationManager.requestPermissionOnFirstLaunch()
+            }
         }
         .onChange(of: selectedTab) { _, newValue in
             AnalyticsService.track(.tabSelected, properties: ["tab": newValue.analyticsName])

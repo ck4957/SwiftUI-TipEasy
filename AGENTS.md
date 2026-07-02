@@ -32,6 +32,8 @@ Use the relevant installed Codex skills for Apple-platform work:
 
 Keep release work script-first and prompt-light:
 
+- For App Store screenshots, prefer deterministic Xcode UI tests over AI-generated or manually navigated captures. Add launch arguments, synthetic fixtures, stable accessibility labels/identifiers, and scripts that write simulator screenshots to the App Store screenshot folders.
+- Before release screenshot refreshes, run `./scripts/generate-screenshots.sh` when available; keep screenshots generated from the app UI, with synthetic data and no secrets.
 - Use `ios-app-store-release` only when changing App Store/TestFlight docs, privacy notes, screenshot plans, review notes, or release checklists.
 - Use `./scripts/bump-build-number.sh` before another upload for the same marketing version.
 - Use `./scripts/release-doctor.sh` before release commits or App Store upload attempts.

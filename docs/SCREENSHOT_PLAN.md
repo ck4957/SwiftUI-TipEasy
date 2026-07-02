@@ -1,6 +1,23 @@
 # Screenshot Plan
 
-Status: NEEDS_INPUT
+Status: AUTOMATED_DRAFT
+
+## Automated Capture Workflow
+
+Run the App Store screenshot suite whenever the UI changes or before preparing a release:
+
+```bash
+./scripts/generate-screenshots.sh
+```
+
+The script runs `Scan TipUITests/AppStoreScreenshotUITests` on the configured iPhone 6.9-inch and iPad 13-inch simulators, launches the app with deterministic screenshot fixtures, and writes PNGs into:
+
+- `screenshots/app-store/iphone-6.9/`
+- `screenshots/app-store/ipad-13/`
+
+The UI test suite does not depend on AI or manual screen navigation. It uses Xcode UI automation, launch arguments, an in-memory SwiftData store, seeded sample history, English locale/language arguments, and a debug-only Pro unlock. Override `IPHONE_DESTINATION` or `IPAD_DESTINATION` when a local Xcode install uses a different simulator name.
+
+By default, the script replaces `.png`, `.jpg`, and `.jpeg` files in those display folders while preserving app preview videos and other non-image assets. For a dry run, set `SCREENSHOT_ROOT=build/screenshot-dry-run`.
 
 ## Existing Screenshot Inventory
 
@@ -36,6 +53,7 @@ Status: NEEDS_INPUT
 
 ## Required User Journeys
 
+- Automated UI test coverage: onboarding pages, calculator empty state, filled calculator total, seeded history, and settings.
 - Onboarding or first launch: show the three-page onboarding flow if it will be part of the submitted experience.
 - Primary app value: bill amount, preset/custom tip, computed tip, and total.
 - Receipt scanning: camera scanner with detected merchant/total and included service-charge warning.
